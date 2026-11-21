@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
 import { Button } from '../UI/Button';
 import {
-  FontAwesomeIcon,
-  faShieldHalved,
-  faPhoneVolume,
-  faQrcode,
-  faLink,
-  faFileShield,
-  faMagnifyingGlass,
-  faArrowRight,
-  faCircleCheck,
-} from '../UI/Icons';
+  BookOpen,
+  PhoneCall,
+  QrCode,
+  Link2,
+  FileCode,
+  ShieldCheck,
+  Search,
+  ArrowRight,
+  AlertTriangle,
+  CheckCircle2,
+  X,
+} from 'lucide-react';
 
 interface ScamGuide {
   id: string;
@@ -24,6 +26,7 @@ interface ScamGuide {
   realExample: string;
   goldenRule: string;
   testPrompt: string;
+  promptType: 'text' | 'url';
 }
 
 const SCAM_GUIDES: ScamGuide[] = [
@@ -31,134 +34,139 @@ const SCAM_GUIDES: ScamGuide[] = [
     id: 'digital-arrest',
     title: 'Digital Arrest & Police Video Call Extortion',
     category: 'LAW ENFORCEMENT IMPERSONATION',
-    icon: faPhoneVolume,
+    icon: PhoneCall,
     dangerLevel: 'CRITICAL',
     howItStarts:
-      'You receive a call or WhatsApp video call from someone dressed in a police uniform or claiming to be from the CBI/Customs Department, alleging a contraband parcel was seized under your Aadhaar.',
+      'You receive a phone call or WhatsApp video call from individuals in mock police uniforms alleging a contraband parcel was seized under your Aadhaar by Customs or CBI.',
     psychologicalTrap:
-      'Fear of arrest and legal shame. Scammers pressure victims into staying on video calls for hours, forbidding them from contacting family or lawyers.',
+      'Fear of public humiliation and arrest. Coercers demand you remain on camera in isolation and forbid contacting family or attorneys.',
     redFlags: [
-      'Claims you are under "Digital Arrest" (there is no legal concept of digital arrest in India)',
-      'Conducts police interrogation over WhatsApp or Skype video call',
-      'Sends forged Supreme Court arrest warrants with official-looking stamps',
-      'Asks you to transfer funds to an "RBI verification / security escrow account"',
+      'Claims you are under "Digital Arrest" (there is no concept of digital arrest under Indian criminal procedure)',
+      'Interrogations conducted over WhatsApp, Skype, or consumer video platforms',
+      'Forged arrest warrants bearing simulated judicial seals',
+      'Demand to wire funds to an "RBI clearance verification / security escrow account"',
     ],
     realExample:
       'CONFIDENTIAL NOTICE FROM CBI: An arrest warrant has been approved under NDPS Act. An illegal parcel seized in customs contains 16 fake passports in your name. Join video call interrogation immediately.',
     goldenRule:
-      'Police, CBI, and Customs NEVER interrogate or arrest citizens over WhatsApp video calls. Never transfer money to any "clearance account". Disconnect immediately and visit your local police station.',
+      'Police, CBI, and Customs NEVER interrogate or arrest citizens over WhatsApp video calls, nor do they demand money to settle allegations. Disconnect immediately and visit your local police station.',
     testPrompt:
       'CONFIDENTIAL NOTICE FROM CBI & MUMBAI POLICE: An arrest warrant has been issued against your Aadhaar card number under Section 21 of the NDPS Act. An illegal parcel seized in customs contains contraband. You are under immediate digital arrest. Connect to video call interrogation immediately.',
+    promptType: 'text',
   },
   {
     id: 'reverse-upi',
     title: 'Reverse UPI & "Scan to Receive Money" Traps',
     category: 'PAYMENT GATEWAY DECEPTION',
-    icon: faQrcode,
+    icon: QrCode,
     dangerLevel: 'CRITICAL',
     howItStarts:
-      'A buyer on OLX, Facebook Marketplace, or an unknown buyer contacts you to buy something you listed, offering to send an advance payment via Google Pay, PhonePe, or Paytm.',
+      'A prospective buyer on a classifieds marketplace contacts you to purchase your listed item and offers to send an immediate advance via UPI.',
     psychologicalTrap:
-      'Greed and technical confusion. The scammer sends a QR code or payment collect request, telling you "Scan this QR code and type your UPI PIN to accept the advance credit."',
+      'Technical confusion and eagerness to close a transaction. The buyer transmits a QR code stating "Scan this and enter your UPI PIN to accept the advance credit."',
     redFlags: [
-      'Anyone asking you to scan a QR code to "receive" funds',
-      'Any prompt asking for your 4-digit or 6-digit UPI PIN to "accept" a refund or cashback',
-      'Claims that payment is stuck until you approve the collect request',
+      'Any instruction demanding you scan a QR code to "receive" funds',
+      'Any prompt asking for your 4-digit or 6-digit UPI PIN to "accept" refunds or earnings',
+      'Claims that payment is pending clearance until you approve a collect request',
     ],
     realExample:
       'Dear Seller, I am transferring the ₹15,000 advance payment for your sofa. Please scan this QR code and enter your UPI PIN to receive the money directly credited to your Google Pay bank balance.',
     goldenRule:
-      'In UPI technology, entering your UPI PIN strictly DEDUCTS money from your account. You NEVER need to enter your PIN to receive money.',
+      'Under the Unified Payments Interface (UPI) standard, entering your secret PIN strictly AUTHORIZES DEBIT. Receiving funds never requires entering a PIN or scanning a code.',
     testPrompt:
       'Dear Seller, I am transferring the ₹15,000 advance payment for your sofa. Please scan this QR code and enter your UPI PIN to receive the money directly credited to your Google Pay bank balance.',
+    promptType: 'text',
   },
   {
     id: 'courier-smishing',
-    title: 'Courier & India Post "Incomplete Address" Smishing',
-    category: 'POSTAL SMS PHISHING',
-    icon: faLink,
+    title: 'Postal Courier & "Incomplete Address" Smishing',
+    category: 'SMS PHISHING & DOMAIN SPOOFING',
+    icon: Link2,
     dangerLevel: 'HIGH',
     howItStarts:
-      'You receive an urgent SMS claiming an India Post, FedEx, or DHL package cannot be delivered because your address or PIN code was incomplete.',
+      'An SMS arrives claiming a parcel cannot be delivered due to an invalid postal code, directing you to click an urgent update link.',
     psychologicalTrap:
-      'Urgency and curiosity. People frequently order online and assume they might have a pending delivery. The scammer asks for a tiny ₹5 or ₹10 redelivery fee.',
+      'Curiosity and fear of missed delivery. The victim assumes it is an e-commerce order and the link requests a nominal ₹10 fee.',
     redFlags: [
-      'SMS sent from an ordinary 10-digit mobile number rather than an official courier header (e.g. VK-INDPOST)',
-      'Directs you to click an unofficial shortened link (e.g. bit.ly, .top, .online, .biz)',
-      'Demands you enter credit card CVV or netbanking OTP to pay a tiny nominal fee',
+      'Originating from an ordinary 10-digit mobile number rather than registered sender headers',
+      'Redirects to newly registered unofficial domains (.top, .info, .xyz, .biz)',
+      'Requires credit card details, CVV, or banking OTP to process a nominal re-delivery fee',
     ],
     realExample:
       'Your India Post parcel ID-IN7821 cannot be delivered due to incomplete address. Please update within 12 hours at http://indiapost-parcel-redelivery.top or parcel will be returned.',
     goldenRule:
-      'Never click tracking links inside SMS messages. Open the official courier app or website directly (e.g. indiapost.gov.in) and enter your tracking number there.',
-    testPrompt:
-      'http://indiapost-parcel-redelivery.top/update-address?trackId=IN89128',
+      'Never tap links in unexpected courier text messages. Navigate directly to the official logistics provider portal (e.g. indiapost.gov.in) and enter your tracking identifier directly.',
+    testPrompt: 'http://indiapost-parcel-redelivery.top/update-address?trackId=IN89128',
+    promptType: 'url',
   },
   {
     id: 'electricity-apk',
-    title: 'Electricity Cutoff & Fake Utility APK Trojans',
-    category: 'MOBILE SPYWARE / TROJAN',
-    icon: faFileShield,
+    title: 'Utility Power Cutoff & Malicious APK Trojans',
+    category: 'MOBILE SPYWARE & ACCESS FRAUD',
+    icon: FileCode,
     dangerLevel: 'CRITICAL',
     howItStarts:
-      'An SMS arrives warning: "Dear Consumer, your electricity will be disconnected tonight at 9:30 PM because your previous month bill was not updated. Call officer immediately."',
+      'An urgent SMS warns: "Your power supply will be disconnected tonight at 9:30 PM due to an unpaid bill. Call the electricity officer immediately."',
     psychologicalTrap:
-      'Panic over losing electricity. When the victim calls the number, the scammer instructs them to download an "update app" via WhatsApp (which is a malicious APK) or install QuickSupport.',
+      'Panic over losing electricity. The victim calls the number, and the fraudster directs them to install an "update application" sent over WhatsApp.',
     redFlags: [
-      'Demands you call an individual personal mobile number instead of an official toll-free helpline',
-      'Asks you to download an Android APK file (.apk) directly from a chat message',
-      'The APK asks for permissions to read incoming SMS messages (used to steal bank OTPs)',
+      'Demands you dial an unverified personal phone number instead of a public utility toll-free line',
+      'Instructs downloading an Android package (.apk) file directly from a chat thread',
+      'The application requests accessibility, SMS read, and remote control permissions',
     ],
     realExample:
       'Dear consumer, your electricity power will be disconnected tonight at 9.30 PM from electricity office because your previous month bill was not updated. Please call electricity officer at 9876543210 immediately.',
     goldenRule:
-      'Electricity boards NEVER send APK files via WhatsApp and never threaten same-night disconnection via personal phone numbers. Always pay bills through official state electricity portals.',
+      'Utility providers never distribute sideloaded APK files or demand same-night settlement via personal telephone calls. Always pay bills through official state power utility portals.',
     testPrompt:
       'Dear consumer, your electricity power will be disconnected tonight at 9.30 PM from electricity office because your previous month bill was not updated. Please call electricity officer at 9876543210 immediately or download QuickSupport app to update bill.',
+    promptType: 'text',
   },
   {
     id: 'weaponized-docs',
-    title: 'Weaponized Invoices & Macro Documents',
-    category: 'MALICIOUS DOCUMENTS',
-    icon: faFileShield,
+    title: 'Weaponized Attachments & Macro Payloads',
+    category: 'MALICIOUS OFFICE & PDF DOCUMENTS',
+    icon: FileCode,
     dangerLevel: 'HIGH',
     howItStarts:
-      'An email arrives with an attachment titled "Tax_Refund_Invoice.docx", "Salary_Slip.pdf.exe", or "Financial_Ledger.csv".',
+      'An email with an attachment titled "Tax_Assessment_Notice.docx", "Salary_Slip.pdf.exe", or "Ledger_Q3.csv" arrives unexpectedly.',
     psychologicalTrap:
-      'Curiosity or corporate routine. Upon opening, Microsoft Office displays a yellow banner prompting you to "Enable Editing" or "Enable Macros".',
+      'Administrative curiosity or workplace duty. Opening prompts a notification to "Enable Editing" or "Enable Macros".',
     redFlags: [
-      'File has a disguised double extension (e.g. invoice.pdf.exe)',
-      'Office document prompts you to enable macros or external content to view text',
-      'CSV file contains formulas starting with =cmd| or -powershell|',
+      'Double file extensions designed to deceive (e.g. statement.pdf.exe)',
+      'Office documents requiring macro execution to render supposed invoice text',
+      'CSV or spreadsheet files initiating DDE command lines (=cmd| or -powershell|)',
     ],
     realExample:
-      'Attachment: salary_slip_2026.pdf.exe containing a hidden Windows PE executable designed to steal Chrome browser passwords.',
+      'Attachment: salary_slip_2026.pdf.exe containing a hidden Windows PE executable disguised by double extension.',
     goldenRule:
-      'Never click "Enable Content" or "Enable Macros" on unsolicited attachments. Legitimate invoices never require macro code execution to be readable.',
+      'Never enable macros or embedded scripts on unsolicited attachments. Authentic invoices and legal documents do not require script execution.',
     testPrompt:
       'Financial statement containing embedded CSV DDE formula: =cmd|\'/c calc\'!A1',
+    promptType: 'text',
   },
   {
     id: 'telegram-job',
-    title: 'Telegram "Like & Earn" Job Task Scams',
-    category: 'ADVANCE-FEE TASK FRAUD',
-    icon: faShieldHalved,
+    title: 'Telegram "Like & Earn" Advance Task Scams',
+    category: 'ADVANCE-FEE REVENUE FRAUD',
+    icon: ShieldCheck,
     dangerLevel: 'HIGH',
     howItStarts:
-      'A recruiter messages you on WhatsApp offering a flexible work-from-home job paying ₹150 for every YouTube video you like or hotel you review on Google Maps.',
+      'Unsolicited recruiter messages on messaging apps offer part-time income for liking videos or posting hotel ratings.',
     psychologicalTrap:
-      'Small initial payouts build trust. Scammers pay ₹300-₹500 for the first few tasks. Then, they invite you to a VIP Telegram group requiring a ₹10,000 "crypto recharge" to unlock bigger payouts.',
+      'Trust established via small upfront disbursements (₹300). Victims are then enrolled in "VIP merchant groups" requiring ₹10,000 deposits to withdraw accumulated earnings.',
     redFlags: [
-      'Recruitment conducted entirely via WhatsApp and Telegram with no official interview or company contract',
-      'Requires you to deposit or "recharge" cryptocurrency/USDT to receive your earnings',
-      'Withdrawals are suddenly blocked until you pay heavy "tax penalties"',
+      'Hiring conducted exclusively via messaging platforms without formal employment agreements',
+      'Requires sending money or cryptocurrency deposits to unlock withdrawal privileges',
+      'Withdrawals blocked by sudden demands for "tax compliance deposits"',
     ],
     realExample:
       'Part-time job offer: Earn ₹3,000 to ₹5,000 daily by simply subscribing to YouTube channels. Contact our HR manager on Telegram @GlobalMediaTask_VIP for immediate ₹200 joining bonus.',
     goldenRule:
-      'No genuine employer ever asks you to pay money or recharge crypto wallets to receive your earned salary.',
+      'Legitimate employers never demand upfront cash recharges or cryptocurrency payments to release earned wages.',
     testPrompt:
       'Part-time job offer: Earn ₹3,000 to ₹5,000 daily by simply subscribing to YouTube channels. Contact our HR manager on Telegram @GlobalMediaTask_VIP for immediate ₹200 joining bonus.',
+    promptType: 'text',
   },
 ];
 
@@ -179,195 +187,184 @@ export const ScamEncyclopedia: React.FC<ScamEncyclopediaProps> = ({ onTestPrompt
 
   return (
     <div className="space-y-6">
-      {/* Hero Banner */}
-      <div className="bg-[#11151E] border border-[#30394B] rounded-2xl p-6 sm:p-8">
+      {/* Header Banner */}
+      <div className="bg-[var(--surface-primary)] border border-[var(--border-color)] rounded-xl p-6 sm:p-7 shadow-xs">
         <div className="max-w-3xl">
-          <span className="px-2.5 py-0.5 rounded-full bg-[#6366F1]/20 text-[#818CF8] text-[11px] font-mono font-semibold uppercase tracking-wider inline-block mb-2">
-            Citizen Education & Resource Library
-          </span>
-          <h2 className="text-2xl sm:text-3xl font-bold font-display text-[#F1F5F9]">
-            The Plain-English Cyber Scam Encyclopedia
-          </h2>
-          <p className="text-sm text-[#94A3B8] mt-2 leading-relaxed">
-            No technical jargon. Learn how modern scammers trick people, what they say, and the exact golden
-            rule to stay completely safe online.
+          <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-md text-[11px] font-mono border border-[var(--border-color)] bg-[var(--surface-elevated)] text-[var(--accent-primary)] mb-2">
+            <BookOpen className="w-3.5 h-3.5" />
+            <span>Citizen Cyber Defense Intelligence</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-heading font-bold text-[var(--text-primary)] tracking-tight">
+            The Cyber Fraud Encyclopedia
+          </h1>
+          <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-1.5 leading-relaxed">
+            Understand how modern digital fraud operates, identify the psychological levers exploited by syndicates, and apply deterministic rules to protect yourself.
           </p>
         </div>
 
         {/* Search Bar */}
-        <div className="mt-6 relative max-w-xl">
-          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#94A3B8]">
-            <FontAwesomeIcon icon={faMagnifyingGlass} />
+        <div className="mt-5 relative max-w-lg">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[var(--text-muted)]">
+            <Search className="w-4 h-4" />
           </div>
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search scams by name, e.g. Digital Arrest, QR Code, Electricity bill, India Post..."
-            className="w-full bg-[#090B10] border border-[#30394B] rounded-xl pl-10 pr-4 py-2.5 text-xs sm:text-sm text-[#F1F5F9] focus:outline-none focus:border-[#818CF8] transition-all"
+            placeholder="Search threats (e.g. Digital Arrest, QR Code, Electricity bill, India Post)..."
+            className="w-full bg-[var(--surface-elevated)] border border-[var(--border-color)] rounded-lg pl-9 pr-3 py-2 text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--accent-primary)] transition-colors"
           />
         </div>
       </div>
 
-      {/* Scam Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        {filteredGuides.map((guide) => (
-          <div
-            key={guide.id}
-            className="bg-[#11151E] border border-[#30394B] hover:border-[#818CF8]/50 rounded-2xl p-5 flex flex-col justify-between transition-all group"
-          >
-            <div className="space-y-3.5">
-              <div className="flex items-start justify-between gap-3">
-                <div className="w-10 h-10 rounded-xl bg-[#1B2230] border border-[#30394B] flex items-center justify-center text-[#818CF8] text-lg group-hover:scale-105 transition-transform">
-                  <FontAwesomeIcon icon={guide.icon} />
+      {/* Grid of Threat Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {filteredGuides.map((guide) => {
+          const Icon = guide.icon;
+          return (
+            <div
+              key={guide.id}
+              className="bg-[var(--surface-primary)] border border-[var(--border-color)] hover:border-[var(--accent-primary)] rounded-xl p-5 flex flex-col justify-between transition-colors shadow-xs group"
+            >
+              <div className="space-y-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-[var(--surface-elevated)] border border-[var(--border-color)] flex items-center justify-center text-[var(--accent-primary)] shrink-0">
+                    <Icon className="w-4 h-4" />
+                  </div>
+                  <span
+                    className={`px-2 py-0.5 rounded-md text-[10px] font-mono font-bold tracking-wider uppercase border ${
+                      guide.dangerLevel === 'CRITICAL'
+                        ? 'bg-[var(--status-danger-bg)] text-[var(--status-danger)] border-[var(--status-danger)]'
+                        : 'bg-[var(--status-warning-bg)] text-[var(--status-warning)] border-[var(--status-warning)]'
+                    }`}
+                  >
+                    {guide.dangerLevel} THREAT
+                  </span>
                 </div>
-                <span
-                  className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-bold tracking-wide uppercase ${
-                    guide.dangerLevel === 'CRITICAL'
-                      ? 'bg-[#EF4444]/15 text-[#EF4444] border border-[#EF4444]/30'
-                      : 'bg-[#F59E0B]/15 text-[#F59E0B] border border-[#F59E0B]/30'
-                  }`}
+
+                <div>
+                  <span className="text-[10px] font-mono text-[var(--accent-primary)] uppercase tracking-wider block">
+                    {guide.category}
+                  </span>
+                  <h2 className="text-sm font-heading font-bold text-[var(--text-primary)] mt-0.5 leading-snug">
+                    {guide.title}
+                  </h2>
+                </div>
+
+                <div className="p-3 rounded-lg bg-[var(--surface-elevated)] border border-[var(--border-color)] space-y-1 text-xs">
+                  <span className="text-[10px] font-mono text-[var(--text-muted)] uppercase block">
+                    How it starts:
+                  </span>
+                  <p className="text-[11px] text-[var(--text-secondary)] leading-relaxed">
+                    {guide.howItStarts}
+                  </p>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="mt-4 pt-3 border-t border-[var(--border-color)] flex items-center justify-between gap-2">
+                <button
+                  onClick={() => setSelectedGuide(guide)}
+                  className="text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
                 >
-                  {guide.dangerLevel} THREAT
-                </span>
-              </div>
+                  View Details & Golden Rule
+                </button>
 
-              <div>
-                <span className="text-[10px] font-mono font-semibold text-[#818CF8] uppercase tracking-wider block">
-                  {guide.category}
-                </span>
-                <h3 className="text-base font-bold font-display text-[#F1F5F9] mt-0.5 leading-snug">
-                  {guide.title}
-                </h3>
-              </div>
-
-              <div className="p-3 rounded-xl bg-[#090B10] border border-[#30394B] space-y-1.5 text-xs">
-                <span className="text-[#818CF8] font-semibold text-[11px] block font-mono">
-                  HOW THE SCAM STARTS:
-                </span>
-                <p className="text-[#94A3B8] leading-relaxed">{guide.howItStarts}</p>
-              </div>
-
-              <div className="space-y-1.5">
-                <span className="text-[11px] font-mono text-[#F1F5F9] font-semibold uppercase block">
-                  Dead Giveaway Red Flags:
-                </span>
-                <ul className="space-y-1 text-xs text-[#94A3B8]">
-                  {guide.redFlags.slice(0, 2).map((rf, idx) => (
-                    <li key={idx} className="flex items-start gap-1.5">
-                      <span className="text-[#EF4444] font-bold shrink-0">✕</span>
-                      <span>{rf}</span>
-                    </li>
-                  ))}
-                </ul>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => onTestPrompt(guide.testPrompt, guide.promptType)}
+                  icon={<ArrowRight className="w-3 h-3" />}
+                >
+                  Test Sample
+                </Button>
               </div>
             </div>
-
-            <div className="pt-4 mt-4 border-t border-[#30394B] flex items-center justify-between gap-2">
-              <button
-                onClick={() => setSelectedGuide(guide)}
-                className="text-xs font-semibold text-[#818CF8] hover:text-[#A5B4FC] flex items-center gap-1 transition-colors"
-              >
-                <span>Read Full Guide</span>
-                <FontAwesomeIcon icon={faArrowRight} className="text-[10px]" />
-              </button>
-
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() =>
-                  onTestPrompt(
-                    guide.testPrompt,
-                    guide.id === 'courier-smishing' ? 'url' : 'text'
-                  )
-                }
-              >
-                Test in Scanner
-              </Button>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
-      {/* Detailed Modal for Full Scam Guide */}
+      {/* Guide Detail Modal */}
       {selectedGuide && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#090B10]/80 backdrop-blur-sm animate-fadeIn">
-          <div className="w-full max-w-2xl bg-[#11151E] border border-[#30394B] rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="px-6 py-4 border-b border-[#30394B] flex items-center justify-between bg-[#1B2230]/40">
+        <div className="fixed inset-0 z-50 bg-[var(--bg-canvas)]/80 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-[var(--surface-primary)] border border-[var(--border-color)] rounded-2xl max-w-2xl w-full p-6 space-y-5 shadow-xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-start justify-between gap-4 border-b border-[var(--border-color)] pb-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-[#6366F1]/20 text-[#818CF8] flex items-center justify-center text-lg">
-                  <FontAwesomeIcon icon={selectedGuide.icon} />
+                <div className="w-10 h-10 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border-color)] flex items-center justify-center text-[var(--accent-primary)]">
+                  <selectedGuide.icon className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold font-display text-[#F1F5F9]">
-                    {selectedGuide.title}
-                  </h3>
-                  <span className="text-xs font-mono text-[#818CF8]">
+                  <span className="text-[10px] font-mono text-[var(--accent-primary)] uppercase">
                     {selectedGuide.category}
                   </span>
+                  <h2 className="text-lg font-heading font-bold text-[var(--text-primary)]">
+                    {selectedGuide.title}
+                  </h2>
                 </div>
               </div>
               <button
                 onClick={() => setSelectedGuide(null)}
-                className="text-[#94A3B8] hover:text-[#F1F5F9] text-xl font-bold px-2 py-1"
+                className="p-1 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-elevated)] transition-colors cursor-pointer"
               >
-                ✕
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="p-6 overflow-y-auto space-y-5 text-xs sm:text-sm">
-              <div>
-                <h4 className="text-xs font-bold text-[#818CF8] uppercase font-mono tracking-wider mb-1.5">
-                  1. The Deception Strategy
-                </h4>
-                <p className="text-[#F1F5F9] leading-relaxed">{selectedGuide.howItStarts}</p>
-                <p className="text-[#94A3B8] mt-1 leading-relaxed">
-                  <strong>The Trap:</strong> {selectedGuide.psychologicalTrap}
-                </p>
-              </div>
+            {/* Psychological Trap */}
+            <div className="p-3.5 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border-color)] space-y-1">
+              <span className="text-xs font-mono font-semibold text-[var(--status-warning)] uppercase flex items-center gap-1.5">
+                <AlertTriangle className="w-3.5 h-3.5" />
+                Psychological Manipulation Tactic
+              </span>
+              <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                {selectedGuide.psychologicalTrap}
+              </p>
+            </div>
 
-              <div>
-                <h4 className="text-xs font-bold text-[#EF4444] uppercase font-mono tracking-wider mb-2">
-                  2. All Dead Giveaway Red Flags
-                </h4>
-                <div className="space-y-2">
-                  {selectedGuide.redFlags.map((rf, i) => (
-                    <div
-                      key={i}
-                      className="p-2.5 rounded-lg bg-[#090B10] border border-[#30394B] text-xs text-[#F1F5F9] flex items-start gap-2"
-                    >
-                      <span className="text-[#EF4444] font-bold">✕</span>
-                      <span>{rf}</span>
-                    </div>
-                  ))}
-                </div>
+            {/* Red Flags */}
+            <div className="space-y-2">
+              <span className="text-xs font-mono font-semibold text-[var(--text-primary)] uppercase tracking-wider block">
+                Primary Red Flags
+              </span>
+              <div className="space-y-1.5">
+                {selectedGuide.redFlags.map((flag, idx) => (
+                  <div
+                    key={idx}
+                    className="p-2.5 rounded-lg bg-[var(--surface-elevated)] border border-[var(--border-color)] text-xs text-[var(--text-primary)] flex items-start gap-2"
+                  >
+                    <span className="text-[var(--status-danger)] font-bold text-xs shrink-0 mt-0.5">✕</span>
+                    <span className="leading-snug">{flag}</span>
+                  </div>
+                ))}
               </div>
+            </div>
 
-              <div className="p-4 rounded-xl bg-[#22C55E]/10 border border-[#22C55E]/30 space-y-1">
-                <h4 className="text-xs font-bold text-[#22C55E] uppercase font-mono tracking-wider flex items-center gap-1.5">
-                  <FontAwesomeIcon icon={faCircleCheck} />
-                  The Golden Rule for 100% Protection
-                </h4>
-                <p className="text-xs text-[#F1F5F9] font-medium leading-relaxed">
-                  {selectedGuide.goldenRule}
-                </p>
-              </div>
+            {/* Golden Rule */}
+            <div className="p-4 rounded-xl bg-[var(--status-success-bg)] border border-[var(--status-success)] space-y-1">
+              <span className="text-xs font-mono font-bold text-[var(--status-success)] uppercase flex items-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4" />
+                The Golden Defensive Rule
+              </span>
+              <p className="text-xs text-[var(--text-primary)] font-medium leading-relaxed">
+                {selectedGuide.goldenRule}
+              </p>
+            </div>
 
-              <div className="pt-2 flex items-center justify-between">
-                <Button variant="secondary" onClick={() => setSelectedGuide(null)}>
-                  Close Guide
-                </Button>
-                <Button
-                  onClick={() => {
-                    const prompt = selectedGuide.testPrompt;
-                    const type = selectedGuide.id === 'courier-smishing' ? 'url' : 'text';
-                    setSelectedGuide(null);
-                    onTestPrompt(prompt, type);
-                  }}
-                >
-                  Test Sample in Scanner
-                </Button>
-              </div>
+            {/* Modal Bottom Actions */}
+            <div className="flex items-center justify-between pt-3 border-t border-[var(--border-color)]">
+              <Button variant="secondary" size="sm" onClick={() => setSelectedGuide(null)}>
+                Close Reference
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => {
+                  onTestPrompt(selectedGuide.testPrompt, selectedGuide.promptType);
+                  setSelectedGuide(null);
+                }}
+                icon={<ArrowRight className="w-3.5 h-3.5" />}
+              >
+                Load into Threat Scanner
+              </Button>
             </div>
           </div>
         </div>

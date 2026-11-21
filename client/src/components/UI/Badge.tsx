@@ -16,39 +16,37 @@ export const Badge: React.FC<BadgeProps> = ({
   children,
   className = '',
 }) => {
-  let colorClasses = 'bg-[#1B2230] text-[#94A3B8] border-[#30394B]';
+  let colorClasses = 'bg-[var(--surface-elevated)] text-[var(--text-secondary)] border-[var(--border-color)]';
 
   if (variant === 'severity' && severity) {
     switch (severity) {
       case 'CRITICAL':
-        colorClasses = 'bg-[#EF4444]/15 text-[#EF4444] border-[#EF4444]/40';
-        break;
       case 'HIGH':
-        colorClasses = 'bg-[#F97316]/15 text-[#F97316] border-[#F97316]/40';
+        colorClasses = 'bg-[var(--status-danger-bg)] text-[var(--status-danger)] border-[var(--status-danger)]';
         break;
       case 'MEDIUM':
-        colorClasses = 'bg-[#F59E0B]/15 text-[#F59E0B] border-[#F59E0B]/40';
+        colorClasses = 'bg-[var(--status-warning-bg)] text-[var(--status-warning)] border-[var(--status-warning)]';
         break;
       case 'LOW':
-        colorClasses = 'bg-[#38BDF8]/15 text-[#38BDF8] border-[#38BDF8]/40';
+        colorClasses = 'bg-[var(--status-info-bg)] text-[var(--status-info)] border-[var(--status-info)]';
         break;
       case 'SAFE':
-        colorClasses = 'bg-[#22C55E]/15 text-[#22C55E] border-[#22C55E]/40';
+        colorClasses = 'bg-[var(--status-success-bg)] text-[var(--status-success)] border-[var(--status-success)]';
         break;
     }
   } else if (variant === 'accent') {
-    colorClasses = 'bg-[#6366F1]/15 text-[#818CF8] border-[#818CF8]/30';
+    colorClasses = 'bg-[var(--accent-subtle)] text-[var(--accent-primary)] border-[var(--border-color)]';
   } else if (variant === 'success') {
-    colorClasses = 'bg-[#22C55E]/15 text-[#22C55E] border-[#22C55E]/40';
+    colorClasses = 'bg-[var(--status-success-bg)] text-[var(--status-success)] border-[var(--status-success)]';
   } else if (variant === 'warning') {
-    colorClasses = 'bg-[#F59E0B]/15 text-[#F59E0B] border-[#F59E0B]/40';
+    colorClasses = 'bg-[var(--status-warning-bg)] text-[var(--status-warning)] border-[var(--status-warning)]';
   } else if (variant === 'danger') {
-    colorClasses = 'bg-[#EF4444]/15 text-[#EF4444] border-[#EF4444]/40';
+    colorClasses = 'bg-[var(--status-danger-bg)] text-[var(--status-danger)] border-[var(--status-danger)]';
   }
 
   return (
     <span
-      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border tracking-wide uppercase font-mono ${colorClasses} ${className}`}
+      className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold border tracking-wider uppercase font-mono ${colorClasses} ${className}`}
     >
       {label || children || severity}
     </span>

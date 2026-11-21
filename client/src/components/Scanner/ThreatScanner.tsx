@@ -4,17 +4,18 @@ import { ThreatResultCard } from './ThreatResultCard';
 import { Button } from '../UI/Button';
 import { useAuth } from '../../context/AuthContext';
 import {
-  FontAwesomeIcon,
-  faCommentDots,
-  faLink,
-  faFileShield,
-  faUpload,
-  faMagnifyingGlass,
-  faShieldHalved,
-  faTriangleExclamation,
-  faCircleCheck,
-  faCircleInfo,
-} from '../UI/Icons';
+  MessageSquare,
+  Link as LinkIcon,
+  FileCode,
+  UploadCloud,
+  Search,
+  ShieldCheck,
+  AlertTriangle,
+  CheckCircle2,
+  BookOpen,
+  Lock,
+  Cpu,
+} from 'lucide-react';
 
 interface ThreatScannerProps {
   onStartIncident: (result: AnalysisResult) => void;
@@ -193,23 +194,31 @@ export const ThreatScanner: React.FC<ThreatScannerProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Hero Intro */}
-      <div className="text-center max-w-2xl mx-auto pt-2 pb-1">
-        <h2 className="font-display font-bold text-2xl sm:text-3xl text-[#F1F5F9] tracking-tight">
-          Universal Threat & Cyber Scam Scanner
-        </h2>
-        <p className="text-sm text-[#94A3B8] mt-2">
-          Deterministic signature checks + AI Fraud Detection. Verify suspicious SMS, WhatsApp
-          chats, QR codes, links, documents, APKs, or EXEs with zero execution risk.
-        </p>
-
-        {user && (
-          <div className="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#1B2230] border border-[#30394B] text-xs font-mono text-[#818CF8]">
-            <span>Active Citizen: {user.displayName}</span>
-            <span>•</span>
-            <span className="text-[#22C55E]">Safety Score: {user.trustScore}/100</span>
+      {/* Precision Header */}
+      <div className="border-b border-[var(--border-color)] pb-5">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-md text-[11px] font-mono border border-[var(--border-color)] bg-[var(--surface-elevated)] text-[var(--text-secondary)] mb-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--status-success)]"></span>
+              Deterministic Security Analysis + AI Fraud Reasoning
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-heading font-bold text-[var(--text-primary)] tracking-tight">
+              Universal Threat & Cyber Scam Scanner
+            </h1>
+            <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-1">
+              Verify suspicious SMS, WhatsApp messages, QR codes, links, documents, APKs, and EXEs in an isolated zero-execution sandbox.
+            </p>
           </div>
-        )}
+
+          {user && (
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--surface-elevated)] border border-[var(--border-color)] text-xs font-mono shrink-0">
+              <span className="text-[var(--text-secondary)]">Citizen:</span>
+              <span className="font-semibold text-[var(--text-primary)]">{user.displayName}</span>
+              <span className="text-[var(--border-color)]">|</span>
+              <span className="text-[var(--status-success)] font-medium">Safe Session</span>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* If Result Exists, Show Threat Result Card */}
@@ -221,40 +230,40 @@ export const ThreatScanner: React.FC<ThreatScannerProps> = ({
         />
       ) : (
         /* Scanner Input Panel */
-        <div className="bg-[#11151E] border border-[#30394B] rounded-2xl p-6 shadow-xl relative overflow-hidden">
-          {/* Scanning Overlay Radar Animation */}
+        <div className="bg-[var(--surface-primary)] border border-[var(--border-color)] rounded-xl p-6 shadow-xs relative overflow-hidden transition-colors">
+          {/* Scanning Progress Overlay */}
           {isScanning && (
-            <div className="absolute inset-0 bg-[#090B10]/90 backdrop-blur-sm z-30 flex flex-col items-center justify-center p-6 space-y-4">
-              <div className="relative w-20 h-20 flex items-center justify-center">
-                <div className="absolute inset-0 rounded-full border border-[#818CF8]/30 animate-ping" />
-                <div className="absolute inset-2 rounded-full border border-[#6366F1] animate-spin border-t-transparent" />
-                <FontAwesomeIcon icon={faShieldHalved} className="text-2xl text-[#818CF8]" />
+            <div className="absolute inset-0 bg-[var(--bg-canvas)]/90 backdrop-blur-xs z-30 flex flex-col items-center justify-center p-6 space-y-4">
+              <div className="relative w-16 h-16 flex items-center justify-center">
+                <div className="absolute inset-0 rounded-full border border-[var(--accent-primary)]/20 animate-ping" />
+                <div className="absolute inset-1 rounded-full border-2 border-[var(--accent-primary)] border-t-transparent animate-spin" />
+                <ShieldCheck className="w-6 h-6 text-[var(--accent-primary)]" />
               </div>
               <div className="text-center space-y-1">
-                <p className="text-sm font-semibold text-[#F1F5F9] font-mono">
-                  Performing Multi-Layer AI & Deterministic Threat Inspection...
+                <p className="text-xs font-heading font-semibold text-[var(--text-primary)] uppercase tracking-wider font-mono">
+                  Inspecting Telemetry & Running Security Rules...
                 </p>
-                <p className="text-xs text-[#94A3B8]">
-                  Checking Magic Bytes • Parsing Signatures • Running Fishiness Scoring • Generating Plain-English Advice
+                <p className="text-[11px] text-[var(--text-secondary)] max-w-md">
+                  Inspecting magic headers, sanitizing PII, evaluating deterministic heuristics, and requesting Gemini AI explanation.
                 </p>
               </div>
             </div>
           )}
 
           {/* Mode Tabs */}
-          <div className="flex border-b border-[#30394B] mb-6">
+          <div className="flex border-b border-[var(--border-color)] mb-6 gap-2">
             <button
               onClick={() => {
                 setActiveTab('text');
                 setErrorMsg(null);
               }}
-              className={`flex items-center gap-2 pb-3 px-4 text-xs sm:text-sm font-medium border-b-2 transition-all ${
+              className={`flex items-center gap-2 pb-3 px-3 text-xs font-medium border-b-2 transition-colors cursor-pointer ${
                 activeTab === 'text'
-                  ? 'border-[#818CF8] text-[#818CF8]'
-                  : 'border-transparent text-[#94A3B8] hover:text-[#F1F5F9]'
+                  ? 'border-[var(--accent-primary)] text-[var(--accent-primary)] font-semibold'
+                  : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
               }`}
             >
-              <FontAwesomeIcon icon={faCommentDots} />
+              <MessageSquare className="w-4 h-4" />
               <span>SMS / WhatsApp / Text</span>
             </button>
             <button
@@ -262,88 +271,104 @@ export const ThreatScanner: React.FC<ThreatScannerProps> = ({
                 setActiveTab('url');
                 setErrorMsg(null);
               }}
-              className={`flex items-center gap-2 pb-3 px-4 text-xs sm:text-sm font-medium border-b-2 transition-all ${
+              className={`flex items-center gap-2 pb-3 px-3 text-xs font-medium border-b-2 transition-colors cursor-pointer ${
                 activeTab === 'url'
-                  ? 'border-[#818CF8] text-[#818CF8]'
-                  : 'border-transparent text-[#94A3B8] hover:text-[#F1F5F9]'
+                  ? 'border-[var(--accent-primary)] text-[var(--accent-primary)] font-semibold'
+                  : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
               }`}
             >
-              <FontAwesomeIcon icon={faLink} />
-              <span>URL & Web Links</span>
+              <LinkIcon className="w-4 h-4" />
+              <span>URLs & Web Links</span>
             </button>
             <button
               onClick={() => {
                 setActiveTab('file');
                 setErrorMsg(null);
               }}
-              className={`flex items-center gap-2 pb-3 px-4 text-xs sm:text-sm font-medium border-b-2 transition-all ${
+              className={`flex items-center gap-2 pb-3 px-3 text-xs font-medium border-b-2 transition-colors cursor-pointer ${
                 activeTab === 'file'
-                  ? 'border-[#818CF8] text-[#818CF8]'
-                  : 'border-transparent text-[#94A3B8] hover:text-[#F1F5F9]'
+                  ? 'border-[var(--accent-primary)] text-[var(--accent-primary)] font-semibold'
+                  : 'border-transparent text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
               }`}
             >
-              <FontAwesomeIcon icon={faFileShield} />
+              <FileCode className="w-4 h-4" />
               <span>FileGuard (Docs, APK, EXE, QR)</span>
             </button>
           </div>
 
           {/* Tab 1: Text Input */}
           {activeTab === 'text' && (
-            <div className="space-y-4">
-              <label className="block text-xs font-semibold text-[#94A3B8] uppercase font-mono">
-                Paste Suspicious Message, Email or Chat Transcript
-              </label>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="block text-xs font-medium text-[var(--text-secondary)] font-mono uppercase tracking-wider">
+                  Paste Suspicious Communication / Notice / Chat
+                </label>
+                <span className="text-[11px] font-mono text-[var(--status-success)] flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3" />
+                  Auto PII Masking
+                </span>
+              </div>
               <textarea
                 value={textInput}
                 onChange={(e) => setTextInput(e.target.value)}
-                placeholder="e.g. Paste notice claiming arrest warrant, fake courier update SMS, or lottery windfall..."
+                placeholder="e.g. Paste summons claiming arrest, fake courier redelivery update, or lottery claim..."
                 rows={5}
-                className="w-full bg-[#090B10] border border-[#30394B] rounded-xl p-4 text-sm text-[#F1F5F9] placeholder-[#94A3B8]/50 focus:outline-none focus:border-[#818CF8] focus:ring-1 focus:ring-[#818CF8] transition-all resize-y"
+                className="w-full bg-[var(--surface-elevated)] border border-[var(--border-color)] rounded-lg p-3 text-xs sm:text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--accent-primary)] transition-colors resize-y font-sans leading-relaxed"
               />
-              <p className="text-[11px] text-[#94A3B8] flex items-center gap-1.5">
-                <FontAwesomeIcon icon={faCircleCheck} className="text-[#22C55E]" />
-                Automated PII Redactor: Phone numbers, cards, and bank account numbers are scrubbed
-                before processing.
+              <p className="text-[11px] text-[var(--text-muted)] flex items-center gap-1.5">
+                <Lock className="w-3 h-3 text-[var(--text-secondary)]" />
+                Phone numbers, 16-digit cards, Aadhaar, and UPI handles are automatically masked before any processing.
               </p>
             </div>
           )}
 
           {/* Tab 2: URL Input */}
           {activeTab === 'url' && (
-            <div className="space-y-4">
-              <label className="block text-xs font-semibold text-[#94A3B8] uppercase font-mono">
-                Enter Web Link, Shortened URL or Phishing Domain
-              </label>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="block text-xs font-medium text-[var(--text-secondary)] font-mono uppercase tracking-wider">
+                  Enter Web Link, Shortened URL or Phishing Domain
+                </label>
+                <span className="text-[11px] font-mono text-[var(--status-info)] flex items-center gap-1">
+                  <ShieldCheck className="w-3 h-3" />
+                  SSRF Pre-flight Guard
+                </span>
+              </div>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#94A3B8]">
-                  <FontAwesomeIcon icon={faLink} />
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[var(--text-muted)]">
+                  <LinkIcon className="w-4 h-4" />
                 </div>
                 <input
                   type="url"
                   value={urlInput}
                   onChange={(e) => setUrlInput(e.target.value)}
                   placeholder="https://example-parcel-update.com/claim or http://bit.ly/..."
-                  className="w-full bg-[#090B10] border border-[#30394B] rounded-xl pl-10 pr-4 py-3 text-sm text-[#F1F5F9] placeholder-[#94A3B8]/50 focus:outline-none focus:border-[#818CF8] focus:ring-1 focus:ring-[#818CF8] transition-all font-mono"
+                  className="w-full bg-[var(--surface-elevated)] border border-[var(--border-color)] rounded-lg pl-9 pr-3 py-2.5 text-xs sm:text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--accent-primary)] transition-colors font-mono"
                 />
               </div>
-              <p className="text-[11px] text-[#94A3B8] flex items-center gap-1.5">
-                <FontAwesomeIcon icon={faCircleCheck} className="text-[#22C55E]" />
-                SSRF Guard Active: Pre-flight DNS prevents requests to private RFC1918 subnets,
-                localhost, or cloud metadata endpoints.
+              <p className="text-[11px] text-[var(--text-muted)] flex items-center gap-1.5">
+                <Lock className="w-3 h-3 text-[var(--text-secondary)]" />
+                Pre-flight DNS validation prevents SSRF attacks against RFC1918 subnets, loopback interfaces, or cloud metadata endpoints.
               </p>
             </div>
           )}
 
           {/* Tab 3: File Upload */}
           {activeTab === 'file' && (
-            <div className="space-y-4">
-              <label className="block text-xs font-semibold text-[#94A3B8] uppercase font-mono">
-                Upload File or Image for Static Analysis (Zero-Execution)
-              </label>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="block text-xs font-medium text-[var(--text-secondary)] font-mono uppercase tracking-wider">
+                  Upload File or Image for Static Analysis (Zero-Execution)
+                </label>
+                <span className="text-[11px] font-mono text-[var(--status-success)] flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3" />
+                  No Execution
+                </span>
+              </div>
               <div
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={handleDrop}
-                className="border-2 border-dashed border-[#30394B] hover:border-[#818CF8]/50 rounded-2xl p-6 text-center cursor-pointer bg-[#090B10]/40 transition-colors"
+                className="border border-dashed border-[var(--border-color)] hover:border-[var(--accent-primary)] rounded-xl p-6 text-center cursor-pointer bg-[var(--surface-elevated)] transition-colors"
                 onClick={() => document.getElementById('file-upload-input')?.click()}
               >
                 <input
@@ -353,90 +378,89 @@ export const ThreatScanner: React.FC<ThreatScannerProps> = ({
                   onChange={handleFileChange}
                   accept=".pdf,.docx,.doc,.xlsx,.xls,.csv,.jpg,.jpeg,.png,.webp,.apk,.exe"
                 />
-                <div className="w-12 h-12 mx-auto rounded-xl bg-[#1B2230] border border-[#30394B] flex items-center justify-center text-[#818CF8] mb-3">
-                  <FontAwesomeIcon icon={faUpload} className="text-xl" />
+                <div className="w-10 h-10 mx-auto rounded-lg bg-[var(--surface-primary)] border border-[var(--border-color)] flex items-center justify-center text-[var(--accent-primary)] mb-2">
+                  <UploadCloud className="w-5 h-5" />
                 </div>
                 {selectedFile ? (
                   <div>
-                    <p className="text-sm font-semibold text-[#F1F5F9] font-mono">
+                    <p className="text-xs font-semibold text-[var(--text-primary)] font-mono">
                       {selectedFile.name}
                     </p>
-                    <p className="text-xs text-[#94A3B8] mt-1">
-                      {(selectedFile.size / 1024 / 1024).toFixed(2)} MB • Ready for Static Analysis
+                    <p className="text-[11px] text-[var(--text-secondary)] mt-0.5">
+                      {(selectedFile.size / 1024 / 1024).toFixed(2)} MB • Ready for static inspection
                     </p>
                   </div>
                 ) : (
                   <div>
-                    <p className="text-sm font-medium text-[#F1F5F9]">
-                      Click to browse or drag & drop files here
+                    <p className="text-xs font-medium text-[var(--text-primary)]">
+                      Click to browse or drop file here
                     </p>
-                    <p className="text-xs text-[#94A3B8] mt-1">
-                      Supported: <span className="text-[#818CF8]">PDF, DOCX, XLSX, CSV, JPG, PNG, WEBP, APK, EXE</span> (Max 25MB)
+                    <p className="text-[11px] text-[var(--text-muted)] mt-1 font-mono">
+                      Supported: PDF, DOCX, XLSX, CSV, JPG, PNG, WEBP, APK, EXE (Max 25MB)
                     </p>
                   </div>
                 )}
               </div>
-              <p className="text-[11px] text-[#94A3B8] flex items-center gap-1.5">
-                <FontAwesomeIcon icon={faCircleCheck} className="text-[#22C55E]" />
-                Zero-Execution Policy: Uploaded binaries and macros are inspected statically via
-                magic bytes and AST structures. Files are never executed.
+              <p className="text-[11px] text-[var(--text-muted)] flex items-center gap-1.5">
+                <Lock className="w-3 h-3 text-[var(--text-secondary)]" />
+                Files are never executed on the host. Analyzed via magic bytes, PE Shannon entropy, and macro AST parsers.
               </p>
             </div>
           )}
 
           {/* Error Message */}
           {errorMsg && (
-            <div className="mt-4 p-3 rounded-xl bg-[#EF4444]/15 border border-[#EF4444]/30 text-xs text-[#EF4444] flex items-center gap-2">
-              <FontAwesomeIcon icon={faTriangleExclamation} />
+            <div className="mt-4 p-3 rounded-lg bg-[var(--status-danger-bg)] border border-[var(--status-danger)] text-xs text-[var(--status-danger)] flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 shrink-0" />
               <span>{errorMsg}</span>
             </div>
           )}
 
           {/* Action Row */}
-          <div className="mt-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-2 text-xs text-[#94A3B8]">
-              <FontAwesomeIcon icon={faShieldHalved} className="text-[#818CF8]" />
-              <span>Deterministic Heuristics + AI Fishiness Reasoning</span>
+          <div className="mt-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-4 border-t border-[var(--border-color)]">
+            <div className="flex items-center gap-2 text-xs text-[var(--text-muted)] font-mono">
+              <Cpu className="w-3.5 h-3.5 text-[var(--accent-primary)]" />
+              <span>Deterministic Security + Gemini 3 Flash Cognitive Explainer</span>
             </div>
 
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2">
               {onOpenEncyclopedia && (
                 <Button
                   variant="secondary"
                   size="md"
                   onClick={onOpenEncyclopedia}
-                  icon={<FontAwesomeIcon icon={faCircleInfo} />}
+                  icon={<BookOpen className="w-3.5 h-3.5" />}
                 >
                   Scam Encyclopedia
                 </Button>
               )}
               <Button
                 onClick={executeScan}
-                size="lg"
+                size="md"
                 isLoading={isScanning}
-                icon={<FontAwesomeIcon icon={faMagnifyingGlass} />}
+                icon={<Search className="w-3.5 h-3.5" />}
               >
                 Scan & Verify Safety
               </Button>
             </div>
           </div>
 
-          {/* Quick-Test Sample Scams Section */}
-          <div className="mt-8 pt-6 border-t border-[#30394B]">
-            <span className="text-[11px] font-semibold text-[#94A3B8] uppercase tracking-wider block mb-3 font-mono">
-              Quick-Test Real World Scam Scenarios
+          {/* Quick-Test Real World Scenarios */}
+          <div className="mt-6 pt-5 border-t border-[var(--border-color)]">
+            <span className="text-[11px] font-mono text-[var(--text-muted)] uppercase tracking-wider block mb-2.5">
+              Quick-Test Prevalent Scam Vectors
             </span>
             <div className="flex flex-wrap gap-2">
               {PRESET_SAMPLES.map((sample, idx) => (
                 <button
                   key={idx}
                   onClick={() => applyPreset(sample)}
-                  className="px-3 py-1.5 rounded-lg bg-[#1B2230]/60 hover:bg-[#1B2230] border border-[#30394B] text-xs text-[#94A3B8] hover:text-[#F1F5F9] transition-colors text-left"
+                  className="px-2.5 py-1.5 rounded-lg bg-[var(--surface-elevated)] hover:border-[var(--accent-primary)] border border-[var(--border-color)] text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors text-left cursor-pointer"
                 >
-                  <span className="font-semibold text-[#818CF8]">
-                    {sample.type.toUpperCase()}:
-                  </span>{' '}
-                  {sample.label}
+                  <span className="font-mono text-[10px] text-[var(--accent-primary)] uppercase mr-1">
+                    [{sample.type}]
+                  </span>
+                  <span>{sample.label}</span>
                 </button>
               ))}
             </div>

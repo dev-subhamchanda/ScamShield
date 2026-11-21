@@ -3,12 +3,12 @@ import type { AuditLogEntry, CommunityThreatReport } from '../../types';
 import { Badge } from '../UI/Badge';
 import { Button } from '../UI/Button';
 import {
-  FontAwesomeIcon,
-  faSliders,
-  faCircleCheck,
-  faBan,
-  faTerminal,
-} from '../UI/Icons';
+  SlidersHorizontal,
+  CheckCircle2,
+  XCircle,
+  Terminal,
+  RefreshCw,
+} from 'lucide-react';
 
 export const AdminDashboard: React.FC = () => {
   const [reports, setReports] = useState<CommunityThreatReport[]>([]);
@@ -65,98 +65,114 @@ export const AdminDashboard: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Top Banner with Engine Health Status */}
-      <div className="bg-[#11151E] border border-[#30394B] rounded-2xl p-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+      <div className="bg-[var(--surface-primary)] border border-[var(--border-color)] rounded-xl p-6 shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
           <div>
-            <h2 className="text-xl font-bold font-display text-[#F1F5F9] flex items-center gap-2.5">
-              <FontAwesomeIcon icon={faSliders} className="text-[#818CF8]" />
-              Administrative Security & Moderation Console
-            </h2>
-            <p className="text-xs text-[#94A3B8] mt-1">
-              Deterministic engine parameters, pending crowdsourced threat moderation, and immutable audit logs.
+            <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-md text-[11px] font-mono border border-[var(--border-color)] bg-[var(--surface-elevated)] text-[var(--status-warning)] mb-2">
+              <SlidersHorizontal className="w-3.5 h-3.5" />
+              <span>Restricted Security Operations Console</span>
+            </div>
+            <h1 className="text-2xl font-bold font-heading text-[var(--text-primary)] tracking-tight">
+              Administrative Moderation & Engine Controls
+            </h1>
+            <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-1">
+              Review crowdsourced indicators, inspect engine safeguards, and audit immutable security logs.
             </p>
           </div>
-          <Button variant="secondary" size="sm" onClick={fetchAdminData} isLoading={loading}>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={fetchAdminData}
+            isLoading={loading}
+            icon={<RefreshCw className="w-3.5 h-3.5" />}
+          >
             Refresh Telemetry
           </Button>
         </div>
 
         {/* Engine Safeguards Status Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-[#30394B] text-xs font-mono">
-          <div className="p-3 rounded-xl bg-[#090B10] border border-[#30394B]">
-            <span className="text-[#94A3B8] text-[10px] block">MIME Magic Engine</span>
-            <span className="text-[#22C55E] font-bold flex items-center gap-1.5 mt-0.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E]" /> ACTIVE (Zero-Exec)
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-4 border-t border-[var(--border-color)] text-xs font-mono">
+          <div className="p-3 rounded-lg bg-[var(--surface-elevated)] border border-[var(--border-color)]">
+            <span className="text-[var(--text-muted)] text-[10px] block">MIME Magic Engine</span>
+            <span className="text-[var(--status-success)] font-bold flex items-center gap-1.5 mt-0.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--status-success)]" /> ACTIVE (Zero-Exec)
             </span>
           </div>
-          <div className="p-3 rounded-xl bg-[#090B10] border border-[#30394B]">
-            <span className="text-[#94A3B8] text-[10px] block">SSRF Guardrail</span>
-            <span className="text-[#22C55E] font-bold flex items-center gap-1.5 mt-0.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E]" /> RFC1918 Blocked
+          <div className="p-3 rounded-lg bg-[var(--surface-elevated)] border border-[var(--border-color)]">
+            <span className="text-[var(--text-muted)] text-[10px] block">SSRF Guardrail</span>
+            <span className="text-[var(--status-success)] font-bold flex items-center gap-1.5 mt-0.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--status-success)]" /> RFC1918 Blocked
             </span>
           </div>
-          <div className="p-3 rounded-xl bg-[#090B10] border border-[#30394B]">
-            <span className="text-[#94A3B8] text-[10px] block">Zip Bomb Safeguard</span>
-            <span className="text-[#22C55E] font-bold flex items-center gap-1.5 mt-0.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E]" /> 10:1 Ratio Ceiling
+          <div className="p-3 rounded-lg bg-[var(--surface-elevated)] border border-[var(--border-color)]">
+            <span className="text-[var(--text-muted)] text-[10px] block">Zip Bomb Safeguard</span>
+            <span className="text-[var(--status-success)] font-bold flex items-center gap-1.5 mt-0.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--status-success)]" /> 10:1 Ratio Ceiling
             </span>
           </div>
-          <div className="p-3 rounded-xl bg-[#090B10] border border-[#30394B]">
-            <span className="text-[#94A3B8] text-[10px] block">Gemini AI Explainer</span>
-            <span className="text-[#818CF8] font-bold flex items-center gap-1.5 mt-0.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#818CF8]" /> Structured JSON
+          <div className="p-3 rounded-lg bg-[var(--surface-elevated)] border border-[var(--border-color)]">
+            <span className="text-[var(--text-muted)] text-[10px] block">Gemini Model</span>
+            <span className="text-[var(--accent-primary)] font-bold flex items-center gap-1.5 mt-0.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent-primary)]" /> 3-Flash-Preview
             </span>
           </div>
         </div>
       </div>
 
       {/* Moderation Queue */}
-      <div className="bg-[#11151E] border border-[#30394B] rounded-2xl p-6 space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-base font-bold font-display text-[#F1F5F9] flex items-center gap-2">
-            <span>Pending Community Reports Queue</span>
-            <span className="px-2 py-0.5 rounded-full bg-[#F59E0B]/20 text-[#F59E0B] text-xs font-mono">
-              {pendingReports.length} Pending
-            </span>
-          </h3>
+      <div className="bg-[var(--surface-primary)] border border-[var(--border-color)] rounded-xl p-6 shadow-xs">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-base font-bold font-heading text-[var(--text-primary)]">
+              Pending Community Reports ({pendingReports.length})
+            </h2>
+            <p className="text-xs text-[var(--text-secondary)] mt-0.5">
+              Verify crowdsourced threat samples before broadcasting across community defense feeds.
+            </p>
+          </div>
         </div>
 
         {pendingReports.length === 0 ? (
-          <p className="text-xs text-[#22C55E] py-4 font-mono">
-            All submitted community reports have been verified or resolved.
-          </p>
+          <div className="py-8 text-center text-xs text-[var(--text-muted)]">
+            All submitted community threat reports have been reviewed and verified.
+          </div>
         ) : (
           <div className="space-y-3">
             {pendingReports.map((report) => (
               <div
                 key={report.id}
-                className="p-4 rounded-xl bg-[#1B2230]/40 border border-[#30394B] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+                className="p-4 rounded-xl bg-[var(--surface-elevated)] border border-[var(--border-color)] flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
               >
                 <div className="space-y-1 max-w-2xl">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold text-[#F1F5F9]">{report.title}</span>
+                    <span className="text-xs font-bold text-[var(--text-primary)] font-heading">
+                      {report.title}
+                    </span>
                     <Badge severity={report.riskSeverity} />
                   </div>
-                  <p className="text-xs font-mono text-[#94A3B8]">"{report.sanitizedSnippet}"</p>
-                  <p className="text-[11px] text-[#818CF8]">Reason: {report.reportingReason}</p>
+                  <p className="text-xs text-[var(--text-secondary)] font-mono leading-relaxed">
+                    "{report.sanitizedSnippet}"
+                  </p>
+                  <span className="text-[10px] text-[var(--text-muted)] font-mono block">
+                    ID: {report.id} • Reason: {report.reportingReason || 'Citizen report'}
+                  </span>
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
                   <Button
-                    variant="primary"
                     size="sm"
-                    icon={<FontAwesomeIcon icon={faCircleCheck} />}
-                    onClick={() => handleReview(report.id, 'approve')}
-                  >
-                    Approve
-                  </Button>
-                  <Button
-                    variant="danger"
-                    size="sm"
-                    icon={<FontAwesomeIcon icon={faBan} />}
+                    variant="secondary"
                     onClick={() => handleReview(report.id, 'reject')}
+                    icon={<XCircle className="w-3.5 h-3.5 text-[var(--status-danger)]" />}
                   >
                     Reject
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => handleReview(report.id, 'approve')}
+                    icon={<CheckCircle2 className="w-3.5 h-3.5 text-[var(--accent-fg)]" />}
+                  >
+                    Approve & Verify
                   </Button>
                 </div>
               </div>
@@ -165,37 +181,45 @@ export const AdminDashboard: React.FC = () => {
         )}
       </div>
 
-      {/* System Audit Logs */}
-      <div className="bg-[#11151E] border border-[#30394B] rounded-2xl p-6 space-y-4">
-        <h3 className="text-base font-bold font-display text-[#F1F5F9] flex items-center gap-2 font-mono">
-          <FontAwesomeIcon icon={faTerminal} className="text-[#818CF8]" />
-          Immutable Security Audit Trail (Recent 50 Events)
-        </h3>
-        <p className="text-xs text-[#94A3B8]">
-          Logs API requests, client IP hashes, scan vectors, and moderation actions with tamper-proof timestamps.
-        </p>
+      {/* Immutable Audit Logs Table */}
+      <div className="bg-[var(--surface-primary)] border border-[var(--border-color)] rounded-xl p-6 shadow-xs">
+        <div className="mb-4">
+          <h2 className="text-base font-bold font-heading text-[var(--text-primary)] flex items-center gap-2">
+            <Terminal className="w-4 h-4 text-[var(--accent-primary)]" />
+            Immutable Security Audit Trail
+          </h2>
+          <p className="text-xs text-[var(--text-secondary)] mt-0.5">
+            System tamper-evident log capturing authentication, scans, submissions, and moderation actions.
+          </p>
+        </div>
 
-        <div className="overflow-x-auto max-h-80">
+        <div className="overflow-x-auto border border-[var(--border-color)] rounded-lg">
           <table className="w-full text-left text-xs font-mono">
-            <thead className="bg-[#1B2230]/60 text-[#94A3B8] sticky top-0 border-b border-[#30394B]">
+            <thead className="bg-[var(--surface-elevated)] text-[var(--text-secondary)] uppercase border-b border-[var(--border-color)] text-[10px]">
               <tr>
                 <th className="py-2.5 px-3">Timestamp</th>
-                <th className="py-2.5 px-3">Actor</th>
                 <th className="py-2.5 px-3">Action</th>
+                <th className="py-2.5 px-3">Actor ID</th>
                 <th className="py-2.5 px-3">IP Hash</th>
                 <th className="py-2.5 px-3">Details</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#30394B]/40">
+            <tbody className="divide-y divide-[var(--border-color)]">
               {auditLogs.map((log) => (
-                <tr key={log.id} className="hover:bg-[#1B2230]/20">
-                  <td className="py-2 px-3 text-[#94A3B8] whitespace-nowrap">
+                <tr key={log.id} className="hover:bg-[var(--surface-elevated)] transition-colors">
+                  <td className="py-2.5 px-3 text-[var(--text-secondary)] whitespace-nowrap text-[11px]">
                     {new Date(log.timestamp).toLocaleTimeString()}
                   </td>
-                  <td className="py-2 px-3 text-[#818CF8]">{log.actorId}</td>
-                  <td className="py-2 px-3 text-[#F1F5F9]">{log.action}</td>
-                  <td className="py-2 px-3 text-[#94A3B8]">{log.clientIpHash}</td>
-                  <td className="py-2 px-3 text-[#94A3B8] truncate max-w-[250px]">
+                  <td className="py-2.5 px-3 text-[var(--accent-primary)] font-semibold text-[11px]">
+                    {log.action}
+                  </td>
+                  <td className="py-2.5 px-3 text-[var(--text-primary)] text-[11px] truncate max-w-[150px]">
+                    {log.actorId || 'system'}
+                  </td>
+                  <td className="py-2.5 px-3 text-[var(--text-muted)] text-[11px]">
+                    {log.clientIpHash}
+                  </td>
+                  <td className="py-2.5 px-3 text-[var(--text-secondary)] text-[11px] truncate max-w-[250px]">
                     {JSON.stringify(log.details)}
                   </td>
                 </tr>
