@@ -11,6 +11,7 @@ import {
   faTerminal,
   faPhoneVolume,
   faCircleInfo,
+  faShieldHalved,
 } from '../UI/Icons';
 
 interface ThreatResultCardProps {
@@ -25,8 +26,20 @@ export const ThreatResultCard: React.FC<ThreatResultCardProps> = ({
   onReset,
 }) => {
   const [showTechnicalDetails, setShowTechnicalDetails] = useState(false);
+  const [copiedAdvice, setCopiedAdvice] = useState(false);
+
   const isDangerous = result.riskSeverity === 'CRITICAL' || result.riskSeverity === 'HIGH';
   const isSafe = result.riskSeverity === 'SAFE';
+
+  const fishiness = result.aiExplanation.fishinessScore || (isSafe ? 5 : result.deterministicScore || 85);
+  const verdictLabel = result.aiExplanation.verdictLabel || (isDangerous ? 'BLATANT SCAM / HIGHLY FISHY' : isSafe ? 'SAFE & GENUINE' : 'POTENTIALLY SUSPICIOUS');
+
+  const copyAdvice = () => {
+    const textToCopy = `ScamShield Verdict: ${verdictLabel}\n${result.aiExplanation.plainLanguageVerdict}\n\nImmediate Actions:\n${result.aiExplanation.immediateActionSteps.join('\n')}`;
+    navigator.clipboard.writeText(textToCopy);
+    setCopiedAdvice(true);
+    setTimeout(() => setCopiedAdvice(false), 2500);
+  };
 
   return (
     <div className="w-full bg-[#11151E] border border-[#30394B] rounded-2xl overflow-hidden shadow-2xl animate-fadeIn">
@@ -57,11 +70,7 @@ export const ThreatResultCard: React.FC<ThreatResultCardProps> = ({
           <div>
             <div className="flex items-center gap-2.5 flex-wrap">
               <span className="font-display font-bold text-xl text-[#F1F5F9] tracking-tight">
-                {isDangerous
-                  ? 'CRITICAL THREAT DETECTED'
-                  : isSafe
-                  ? 'VERIFIED SAFE / BENIGN'
-                  : 'SUSPICIOUS ACTIVITY DETECTED'}
+                {verdictLabel}
               </span>
               <Badge severity={result.riskSeverity} />
               <Badge variant="accent" label={`Confidence: ${result.confidence}`} />
@@ -91,53 +100,103 @@ export const ThreatResultCard: React.FC<ThreatResultCardProps> = ({
       </div>
 
       <div className="p-6 space-y-6">
-        {/* 2. Plain Language Verdict */}
+        {/* 2. AI Scam & Fishiness Probability Gauge */}
+        <div className="p-4 rounded-xl bg-[#090B10] border border-[#30394B] space-y-2">
+          <div className="flex items-center justify-between text-xs font-mono">
+            <span className="text-[#94A3B8] uppercase font-semibold flex items-center gap-1.5">
+              <FontAwesomeIcon icon={faShieldHalved} className="text-[#818CF8]" />
+              AI Scam Likelihood & Fishiness Meter
+            </span>
+            <span
+              className={`font-bold text-sm ${
+                isDangerous ? 'text-[#EF4444]' : isSafe ? 'text-[#22C55E]' : 'text-[#F59E0B]'
+              }`}
+            >
+              {fishiness}% Scam Likelihood
+            </span>
+          </div>
+
+          {/* Visual Progress Bar */}
+          <div className="w-full h-3 rounded-full bg-[#1B2230] overflow-hidden p-0.5 border border-[#30394B]">
+            <div
+              className={`h-full rounded-full transition-all duration-1000 ${
+                isDangerous
+                  ? 'bg-gradient-to-r from-[#F59E0B] to-[#EF4444]'
+                  : isSafe
+                  ? 'bg-[#22C55E]'
+                  : 'bg-[#F59E0B]'
+              }`}
+              style={{ width: `${Math.max(5, fishiness)}%` }}
+            />
+          </div>
+        </div>
+
+        {/* 3. Plain Language Verdict */}
         <div className="bg-[#1B2230]/50 border border-[#30394B] rounded-xl p-4">
-          <h4 className="text-xs font-semibold text-[#818CF8] uppercase tracking-wider mb-1.5 flex items-center gap-2 font-mono">
-            <FontAwesomeIcon icon={faCircleInfo} />
-            Plain-English Security Verdict
-          </h4>
+          <div className="flex items-center justify-between mb-1.5">
+            <h4 className="text-xs font-semibold text-[#818CF8] uppercase tracking-wider flex items-center gap-2 font-mono">
+              <FontAwesomeIcon icon={faCircleInfo} />
+              Plain-English Verdict for Citizens
+            </h4>
+            <button
+              onClick={copyAdvice}
+              className="text-[11px] text-[#94A3B8] hover:text-[#818CF8] transition-colors font-mono"
+            >
+              {copiedAdvice ? '✓ Copied Advice' : 'Copy Advice'}
+            </button>
+          </div>
           <p className="text-sm sm:text-base text-[#F1F5F9] leading-relaxed font-medium">
             {result.aiExplanation.plainLanguageVerdict || result.summary}
           </p>
         </div>
 
-        {/* 3. Psychological Manipulation Breakdown (Social Engineering Traps) */}
-        {result.aiExplanation.psychologicalTricks &&
-          result.aiExplanation.psychologicalTricks.length > 0 && (
-            <div>
-              <h4 className="text-xs font-semibold text-[#94A3B8] uppercase tracking-wider mb-2 font-mono">
-                Psychological Manipulation Tactics Identified
-              </h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                {result.aiExplanation.psychologicalTricks.map((trick, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-start gap-2.5 p-3 rounded-lg bg-[#1B2230]/30 border border-[#30394B] text-xs text-[#F1F5F9]"
-                  >
-                    <span className="w-5 h-5 rounded-md bg-[#6366F1]/20 text-[#818CF8] flex items-center justify-center shrink-0 font-bold font-mono text-[11px]">
-                      {idx + 1}
-                    </span>
-                    <span className="leading-snug">{trick}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-        {/* 4. Attack Mechanics (How this scam operates) */}
-        {result.aiExplanation.attackMechanics && (
-          <div className="p-4 rounded-xl bg-[#090B10]/60 border border-[#30394B]">
-            <h4 className="text-xs font-semibold text-[#94A3B8] uppercase tracking-wider mb-1 font-mono">
-              Attack Mechanics: Behind the Scenes
+        {/* 4. Red Flags Detected (Why this is Fishy) */}
+        {result.aiExplanation.redFlags && result.aiExplanation.redFlags.length > 0 && (
+          <div className="space-y-2">
+            <h4 className="text-xs font-semibold text-[#EF4444] uppercase tracking-wider font-mono flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-[#EF4444]" />
+              Fishy Red Flags Detected
             </h4>
-            <p className="text-xs sm:text-sm text-[#94A3B8] leading-relaxed">
-              {result.aiExplanation.attackMechanics}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {result.aiExplanation.redFlags.map((flag, idx) => (
+                <div
+                  key={idx}
+                  className="p-3 rounded-lg bg-[#090B10] border border-[#30394B] text-xs text-[#F1F5F9] flex items-start gap-2.5"
+                >
+                  <span className="text-[#EF4444] font-bold text-sm shrink-0">✕</span>
+                  <span className="leading-snug">{flag}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 5. Legitimacy Check: What Genuine Organizations Do */}
+        {result.aiExplanation.legitimacyCheck && (
+          <div className="p-4 rounded-xl bg-[#22C55E]/10 border border-[#22C55E]/30 space-y-1">
+            <h4 className="text-xs font-semibold text-[#22C55E] uppercase tracking-wider font-mono flex items-center gap-1.5">
+              <FontAwesomeIcon icon={faCircleCheck} />
+              Reality Check: What Real Organizations Actually Do
+            </h4>
+            <p className="text-xs text-[#F1F5F9] leading-relaxed font-medium">
+              {result.aiExplanation.legitimacyCheck}
             </p>
           </div>
         )}
 
-        {/* 5. The 1-2-3 Immediate Action Steps */}
+        {/* 6. Safe Response Script */}
+        {result.aiExplanation.safeResponseAdvice && (
+          <div className="p-4 rounded-xl bg-[#090B10] border border-[#30394B] space-y-1">
+            <h4 className="text-xs font-semibold text-[#818CF8] uppercase tracking-wider font-mono">
+              Recommended Safe Response / Action
+            </h4>
+            <p className="text-xs text-[#94A3B8] leading-relaxed">
+              {result.aiExplanation.safeResponseAdvice}
+            </p>
+          </div>
+        )}
+
+        {/* 7. The 1-2-3 Immediate Action Steps */}
         <div>
           <h4 className="text-xs font-semibold text-[#F1F5F9] uppercase tracking-wider mb-2.5 font-mono flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-[#818CF8]" />
@@ -160,7 +219,7 @@ export const ThreatResultCard: React.FC<ThreatResultCardProps> = ({
           </div>
         </div>
 
-        {/* 6. Emergency 1930 Advice Box */}
+        {/* 8. Emergency 1930 Advice Box */}
         {isDangerous && (
           <div className="p-4 rounded-xl bg-[#EF4444]/10 border border-[#EF4444]/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div>
@@ -181,7 +240,7 @@ export const ThreatResultCard: React.FC<ThreatResultCardProps> = ({
           </div>
         )}
 
-        {/* 7. Collapsible Technical Security Telemetry */}
+        {/* 9. Collapsible Technical Security Telemetry */}
         <div className="border-t border-[#30394B] pt-4">
           <button
             onClick={() => setShowTechnicalDetails(!showTechnicalDetails)}

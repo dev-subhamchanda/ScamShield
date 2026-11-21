@@ -183,3 +183,10 @@ CREATE INDEX IF NOT EXISTS idx_scan_records_sha256 ON public.scan_records(sha256
 CREATE INDEX IF NOT EXISTS idx_community_threats_verified ON public.community_threats(verified_by_admin);
 CREATE INDEX IF NOT EXISTS idx_incident_cases_user ON public.incident_cases(user_id);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_timestamp ON public.audit_logs(created_at DESC);
+
+-- Grants & Schema Access for Supabase Roles (service_role, anon, authenticated)
+GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
+GRANT ALL ON ALL TABLES IN SCHEMA public TO anon, authenticated, service_role;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated, service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO anon, authenticated, service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO anon, authenticated, service_role;

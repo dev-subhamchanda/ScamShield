@@ -32,5 +32,8 @@ export {
   faFolderOpen,
   faFingerprint,
   faCircleInfo,
+  faBookOpen,
+  faRightFromBracket,
+  faRightToBracket,
 } from '@fortawesome/free-solid-svg-icons';
 export { FontAwesomeIcon } from '@fortawesome/react-fontawesome';

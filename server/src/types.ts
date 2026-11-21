@@ -56,6 +56,11 @@ export interface SecurityIndicators {
 
 export interface AiExplanation {
   plainLanguageVerdict: string;
+  fishinessScore: number; // 0% (Clean) to 100% (Definite Scam)
+  verdictLabel: string;
+  redFlags: string[];
+  legitimacyCheck: string;
+  safeResponseAdvice: string;
   psychologicalTricks: string[];
   attackMechanics: string;
   immediateActionSteps: string[];
@@ -64,6 +69,7 @@ export interface AiExplanation {
 
 export interface AnalysisResult {
   id: string;
+  userId?: string;
   timestamp: string;
   scanType: ScanType;
   targetName: string;
@@ -71,7 +77,7 @@ export interface AnalysisResult {
   confidence: ConfidenceLevel;
   threatCategory: ThreatCategory;
   summary: string;
-  deterministicScore: number; // 0 (completely safe) to 100 (extreme danger)
+  deterministicScore: number; // 0 to 100
   flags: DeterministicFlag[];
   indicators: SecurityIndicators;
   aiExplanation: AiExplanation;
@@ -80,6 +86,7 @@ export interface AnalysisResult {
 
 export interface CommunityThreatReport {
   id: string;
+  userId?: string;
   title: string;
   threatType: ThreatCategory;
   sanitizedSnippet: string;
@@ -105,6 +112,7 @@ export interface ScamCampaign {
 
 export interface IncidentReport {
   id: string;
+  userId?: string;
   scanId?: string;
   threatCategory: ThreatCategory;
   financialLossAmount?: number;

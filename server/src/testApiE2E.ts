@@ -1,4 +1,4 @@
-const BASE_URL = 'http://localhost:5000';
+const BASE_URL = 'http://localhost:4000';
 
 async function runE2ETests() {
   console.log('🚀 Running Comprehensive E2E API Verification for ScamShield...\n');

@@ -12,6 +12,13 @@ import { extractQrFromImageBuffer } from './security/qrScanner.js';
 import { createRateLimiter } from './middleware/rateLimiter.js';
 import { securityHeadersMiddleware } from './middleware/securityHeaders.js';
 import {
+  registerUser,
+  authenticateUser,
+  verifyToken,
+  getUserById,
+  getDemoUser,
+} from './auth/authService.js';
+import {
   persistScanToSupabase,
   persistCommunityReportToSupabase,
   persistIncidentToSupabase,
@@ -67,6 +74,71 @@ function determineConfidence(flags: DeterministicFlag[], score: number): 'HIGH' 
   return 'LOW';
 }
 
+// Helper: Extract user ID from Authorization header
+function extractUserIdFromReq(req: express.Request): string | undefined {
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.split(' ')[1];
+    const payload = verifyToken(token);
+    if (payload && payload.id) return payload.id;
+  }
+  return undefined;
+}
+
+// ----------------------------------------------------
+// AUTHENTICATION SYSTEM
+// ----------------------------------------------------
+app.post('/api/v1/auth/signup', (req: express.Request, res: express.Response) => {
+  try {
+    const { email, password, displayName, role } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ success: false, error: 'Email and password are required' });
+    }
+    const { user, token } = registerUser({ email, password, displayName, role });
+    logAuditEvent(user.id, 'USER_SIGNUP', req.ip || '', { email: user.email });
+    res.json({ success: true, user, token });
+  } catch (err: any) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/v1/auth/login', (req: express.Request, res: express.Response) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ success: false, error: 'Email and password are required' });
+    }
+    const { user, token } = authenticateUser(email, password);
+    logAuditEvent(user.id, 'USER_LOGIN', req.ip || '', { email: user.email });
+    res.json({ success: true, user, token });
+  } catch (err: any) {
+    res.status(401).json({ success: false, error: err.message });
+  }
+});
+
+app.get('/api/v1/auth/me', (req: express.Request, res: express.Response) => {
+  const userId = extractUserIdFromReq(req);
+  if (!userId) {
+    return res.status(401).json({ success: false, error: 'Unauthorized: Invalid or missing token' });
+  }
+  const user = getUserById(userId);
+  if (!user) {
+    return res.status(404).json({ success: false, error: 'User not found' });
+  }
+  res.json({ success: true, user });
+});
+
+app.post('/api/v1/auth/demo', (req: express.Request, res: express.Response) => {
+  try {
+    const role = (req.body.role || 'citizen') as 'citizen' | 'analyst' | 'admin';
+    const { user, token } = getDemoUser(role);
+    logAuditEvent(user.id, 'DEMO_LOGIN', req.ip || '', { role: user.role });
+    res.json({ success: true, user, token });
+  } catch (err: any) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
 // ----------------------------------------------------
 // MODULE 1: UNIVERSAL THREAT SCANNER
 // ----------------------------------------------------
@@ -75,6 +147,7 @@ app.post('/api/v1/scan/universal', scanLimiter, upload.single('file'), async (re
     const file = req.file;
     const { text, url } = req.body;
     const clientIp = req.ip || '127.0.0.1';
+    const authUserId = extractUserIdFromReq(req);
 
     // 1. Process File or Image if present
     if (file) {
@@ -163,6 +236,7 @@ app.post('/api/v1/scan/universal', scanLimiter, upload.single('file'), async (re
 
       const result: AnalysisResult = {
         id: `SCN-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        userId: authUserId,
         timestamp: new Date().toISOString(),
         scanType: qrPayload ? 'qr' : 'file',
         targetName: file.originalname,
@@ -269,6 +343,7 @@ app.post('/api/v1/scan/universal', scanLimiter, upload.single('file'), async (re
 
       const result: AnalysisResult = {
         id: `SCN-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        userId: authUserId,
         timestamp: new Date().toISOString(),
         scanType: 'url',
         targetName: url,
@@ -313,6 +388,7 @@ app.post('/api/v1/scan/universal', scanLimiter, upload.single('file'), async (re
 
       const result: AnalysisResult = {
         id: `SCN-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        userId: authUserId,
         timestamp: new Date().toISOString(),
         scanType: 'message',
         targetName: 'Suspicious Communication / Message',
@@ -350,7 +426,12 @@ app.post('/api/v1/scan/universal', scanLimiter, upload.single('file'), async (re
 // ----------------------------------------------------
 // MODULE 5: PERSONAL SECURITY DASHBOARD & HISTORY
 // ----------------------------------------------------
-app.get('/api/v1/scan/history', (_req, res) => {
+app.get('/api/v1/scan/history', (req: express.Request, res: express.Response) => {
+  const userId = extractUserIdFromReq(req);
+  if (userId) {
+    const userScans = scanHistory.filter((s) => s.userId === userId);
+    return res.json({ success: true, history: userScans.slice(0, 50) });
+  }
   res.json({ success: true, history: scanHistory.slice(0, 50) });
 });
 

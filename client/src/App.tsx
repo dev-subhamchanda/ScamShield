@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
+import { AuthProvider } from './context/AuthContext';
 import { Navbar } from './components/Navbar';
 import type { ActiveTab } from './components/Navbar';
 import { ThreatScanner } from './components/Scanner/ThreatScanner';
+import { ScamEncyclopedia } from './components/Encyclopedia/ScamEncyclopedia';
 import { SecurityDashboard } from './components/Dashboard/SecurityDashboard';
 import { CommunityIntel } from './components/Community/CommunityIntel';
 import { CampaignClusters } from './components/Campaigns/CampaignClusters';
 import { IncidentResponse } from './components/Incident/IncidentResponse';
 import { AdminDashboard } from './components/Admin/AdminDashboard';
+import { AuthModal } from './components/Auth/AuthModal';
 import type { AnalysisResult } from './types';
 import {
   FontAwesomeIcon,
@@ -14,13 +17,22 @@ import {
   faLock,
 } from './components/UI/Icons';
 
-export const App: React.FC = () => {
+const AppContent: React.FC = () => {
   const [activeTab, setActiveTab] = useState<ActiveTab>('scanner');
   const [incidentContextThreat, setIncidentContextThreat] = useState<AnalysisResult | null>(null);
+  const [scannerExternalPrompt, setScannerExternalPrompt] = useState<{
+    prompt: string;
+    type: 'text' | 'url';
+  } | null>(null);
 
   const handleStartIncidentFromScan = (result: AnalysisResult) => {
     setIncidentContextThreat(result);
     setActiveTab('incident');
+  };
+
+  const handleLoadSampleFromEncyclopedia = (prompt: string, type: 'text' | 'url') => {
+    setScannerExternalPrompt({ prompt, type });
+    setActiveTab('scanner');
   };
 
   return (
@@ -31,7 +43,15 @@ export const App: React.FC = () => {
       {/* Main Content Viewport */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {activeTab === 'scanner' && (
-          <ThreatScanner onStartIncident={handleStartIncidentFromScan} />
+          <ThreatScanner
+            onStartIncident={handleStartIncidentFromScan}
+            onOpenEncyclopedia={() => setActiveTab('encyclopedia')}
+            externalPrompt={scannerExternalPrompt}
+          />
+        )}
+
+        {activeTab === 'encyclopedia' && (
+          <ScamEncyclopedia onTestPrompt={handleLoadSampleFromEncyclopedia} />
         )}
 
         {activeTab === 'dashboard' && (
@@ -49,6 +69,9 @@ export const App: React.FC = () => {
         {activeTab === 'admin' && <AdminDashboard />}
       </main>
 
+      {/* Global Auth Modal */}
+      <AuthModal />
+
       {/* Footer */}
       <footer className="w-full bg-[#11151E] border-t border-[#30394B] py-6 px-4 sm:px-6 lg:px-8 mt-12">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#94A3B8]">
@@ -57,7 +80,7 @@ export const App: React.FC = () => {
               <FontAwesomeIcon icon={faShieldHalved} className="text-xs" />
             </div>
             <span className="font-display font-semibold text-[#F1F5F9]">ScamShield Defense</span>
-            <span>• Cross-Platform Cyber Fraud Prevention Architecture</span>
+            <span>• Cross-Platform Cyber Fraud Prevention Platform</span>
           </div>
 
           <div className="flex items-center gap-4 text-[11px] font-mono">
@@ -68,11 +91,19 @@ export const App: React.FC = () => {
             <span className="hidden md:inline text-[#30394B]">|</span>
             <span className="text-[#94A3B8]">Cloudflare Pages & Edge Proxy Ready</span>
             <span className="hidden md:inline text-[#30394B]">|</span>
-            <span className="text-[#818CF8]">Gemini AI Explainer</span>
+            <span className="text-[#818CF8]">Gemini AI Scam Detective</span>
           </div>
         </div>
       </footer>
     </div>
+  );
+};
+
+export const App: React.FC = () => {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 };
 

@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { AnalysisResult } from '../../types';
 import { ThreatResultCard } from './ThreatResultCard';
 import { Button } from '../UI/Button';
+import { useAuth } from '../../context/AuthContext';
 import {
   FontAwesomeIcon,
   faCommentDots,
@@ -12,10 +13,13 @@ import {
   faShieldHalved,
   faTriangleExclamation,
   faCircleCheck,
+  faCircleInfo,
 } from '../UI/Icons';
 
 interface ThreatScannerProps {
   onStartIncident: (result: AnalysisResult) => void;
+  onOpenEncyclopedia?: () => void;
+  externalPrompt?: { prompt: string; type: 'text' | 'url' } | null;
 }
 
 type ScanTab = 'text' | 'url' | 'file';
@@ -69,7 +73,12 @@ const PRESET_SAMPLES: PresetSample[] = [
   },
 ];
 
-export const ThreatScanner: React.FC<ThreatScannerProps> = ({ onStartIncident }) => {
+export const ThreatScanner: React.FC<ThreatScannerProps> = ({
+  onStartIncident,
+  onOpenEncyclopedia,
+  externalPrompt,
+}) => {
+  const { token, user } = useAuth();
   const [activeTab, setActiveTab] = useState<ScanTab>('text');
   const [textInput, setTextInput] = useState('');
   const [urlInput, setUrlInput] = useState('');
@@ -77,6 +86,16 @@ export const ThreatScanner: React.FC<ThreatScannerProps> = ({ onStartIncident })
   const [isScanning, setIsScanning] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [scanResult, setScanResult] = useState<AnalysisResult | null>(null);
+
+  useEffect(() => {
+    if (externalPrompt) {
+      setActiveTab(externalPrompt.type);
+      if (externalPrompt.type === 'text') setTextInput(externalPrompt.prompt);
+      if (externalPrompt.type === 'url') setUrlInput(externalPrompt.prompt);
+      setScanResult(null);
+      setErrorMsg(null);
+    }
+  }, [externalPrompt]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -140,8 +159,14 @@ export const ThreatScanner: React.FC<ThreatScannerProps> = ({ onStartIncident })
         formData.append('text', textInput.trim());
       }
 
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const res = await fetch('/api/v1/scan/universal', {
         method: 'POST',
+        headers,
         body: formData,
       });
 
@@ -174,9 +199,17 @@ export const ThreatScanner: React.FC<ThreatScannerProps> = ({ onStartIncident })
           Universal Threat & Cyber Scam Scanner
         </h2>
         <p className="text-sm text-[#94A3B8] mt-2">
-          Deterministic signature checks + Empathetic AI explanations. Verify suspicious SMS, WhatsApp
+          Deterministic signature checks + AI Fraud Detection. Verify suspicious SMS, WhatsApp
           chats, QR codes, links, documents, APKs, or EXEs with zero execution risk.
         </p>
+
+        {user && (
+          <div className="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#1B2230] border border-[#30394B] text-xs font-mono text-[#818CF8]">
+            <span>Active Citizen: {user.displayName}</span>
+            <span>•</span>
+            <span className="text-[#22C55E]">Safety Score: {user.trustScore}/100</span>
+          </div>
+        )}
       </div>
 
       {/* If Result Exists, Show Threat Result Card */}
@@ -199,10 +232,10 @@ export const ThreatScanner: React.FC<ThreatScannerProps> = ({ onStartIncident })
               </div>
               <div className="text-center space-y-1">
                 <p className="text-sm font-semibold text-[#F1F5F9] font-mono">
-                  Performing Multi-Layer Threat Inspection...
+                  Performing Multi-Layer AI & Deterministic Threat Inspection...
                 </p>
                 <p className="text-xs text-[#94A3B8]">
-                  Checking Magic Bytes • Parsing Signatures • Running Heuristics • Generating Plain-English Advice
+                  Checking Magic Bytes • Parsing Signatures • Running Fishiness Scoring • Generating Plain-English Advice
                 </p>
               </div>
             </div>
@@ -363,17 +396,29 @@ export const ThreatScanner: React.FC<ThreatScannerProps> = ({ onStartIncident })
           <div className="mt-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
             <div className="flex items-center gap-2 text-xs text-[#94A3B8]">
               <FontAwesomeIcon icon={faShieldHalved} className="text-[#818CF8]" />
-              <span>Deterministic Scoring + Gemini Explanation</span>
+              <span>Deterministic Heuristics + AI Fishiness Reasoning</span>
             </div>
 
-            <Button
-              onClick={executeScan}
-              size="lg"
-              isLoading={isScanning}
-              icon={<FontAwesomeIcon icon={faMagnifyingGlass} />}
-            >
-              Scan & Verify Safety
-            </Button>
+            <div className="flex items-center gap-2.5">
+              {onOpenEncyclopedia && (
+                <Button
+                  variant="secondary"
+                  size="md"
+                  onClick={onOpenEncyclopedia}
+                  icon={<FontAwesomeIcon icon={faCircleInfo} />}
+                >
+                  Scam Encyclopedia
+                </Button>
+              )}
+              <Button
+                onClick={executeScan}
+                size="lg"
+                isLoading={isScanning}
+                icon={<FontAwesomeIcon icon={faMagnifyingGlass} />}
+              >
+                Scan & Verify Safety
+              </Button>
+            </div>
           </div>
 
           {/* Quick-Test Sample Scams Section */}
