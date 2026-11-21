@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "ScamShield — Cyber Threat & Fraud Guard",
+  "version": "1.0.0",
+  "description": "Deterministic security analysis and AI explanation protecting against digital arrest scams, reverse UPI traps, malicious files, and phishing links.",
+  "permissions": [
+    "contextMenus",
+    "activeTab",
+    "storage"
+  ],
+  "host_permissions": [
+    "http://localhost:5000/*",
+    "https://*/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "ScamShield Cyber Defense"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

@@ -1,0 +1,63 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>ScamShield Toolbar Guard</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <div class="popup-container">
+      <header class="popup-header">
+        <div class="brand">
+          <div class="shield-icon">🛡️</div>
+          <div>
+            <h1>ScamShield</h1>
+            <p>Zero-Execution Threat Defense</p>
+          </div>
+        </div>
+        <span class="badge-status">Active</span>
+      </header>
+
+      <main class="popup-body">
+        <div class="tabs">
+          <button id="tab-text" class="tab-btn active">Text</button>
+          <button id="tab-url" class="tab-btn">Link</button>
+        </div>
+
+        <div id="view-text" class="tab-content">
+          <textarea
+            id="input-text"
+            placeholder="Paste suspicious SMS, WhatsApp message, or notice..."
+            rows="4"
+          ></textarea>
+        </div>
+
+        <div id="view-url" class="tab-content" style="display: none;">
+          <input
+            id="input-url"
+            type="url"
+            placeholder="https://example-parcel-update.com..."
+          />
+        </div>
+
+        <button id="btn-scan" class="scan-button">
+          Scan & Verify Safety
+        </button>
+
+        <div id="scan-result" class="result-box" style="display: none;">
+          <div class="result-header">
+            <span id="res-badge" class="severity-badge">DANGER</span>
+            <span id="res-score" class="score-pill">Score: 95/100</span>
+          </div>
+          <p id="res-verdict" class="verdict-text"></p>
+          <ul id="res-steps" class="steps-list"></ul>
+        </div>
+      </main>
+
+      <footer class="popup-footer">
+        <span>Emergency Cyber Helpline: <strong>1930</strong></span>
+      </footer>
+    </div>
+    <script src="popup.js"></script>
+  </body>
+</html>

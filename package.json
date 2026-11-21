@@ -1,0 +1,25 @@
+{
+  "name": "scamshield-defense",
+  "version": "1.0.0",
+  "description": "ScamShield: Deterministic Security Analysis & AI Explanation Cyber Defense Platform",
+  "scripts": {
+    "build:client": "npm --prefix client run build",
+    "build:server": "npm --prefix server run build",
+    "build": "npm run build:server && npm run build:client",
+    "test:security": "npm --prefix server run build && node server/dist/testSecurity.js",
+    "start": "node server/dist/index.js",
+    "dev:client": "npm --prefix client run dev",
+    "dev:server": "npm --prefix server run dev"
+  },
+  "keywords": [
+    "cybersecurity",
+    "scam-detection",
+    "deterministic-security",
+    "anti-phishing",
+    "digital-arrest",
+    "reverse-upi",
+    "cloudflare"
+  ],
+  "author": "ScamShield Engineering",
+  "license": "Apache-2.0"
+}
