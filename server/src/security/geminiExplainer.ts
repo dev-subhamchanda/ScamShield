@@ -69,7 +69,26 @@ Provide the JSON explanation:`;
 
       const responseText = result.response.text();
       if (responseText) {
-        const parsed = JSON.parse(responseText);
+        let cleanText = responseText.trim();
+        // Remove markdown code fences if present
+        if (cleanText.startsWith('```')) {
+          cleanText = cleanText.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+        }
+        // Extract substring between first { and last } to avoid leading dashes or conversational text
+        const firstBrace = cleanText.indexOf('{');
+        const lastBrace = cleanText.lastIndexOf('}');
+        if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+          cleanText = cleanText.substring(firstBrace, lastBrace + 1);
+        }
+
+        let parsed: any;
+        try {
+          parsed = JSON.parse(cleanText);
+        } catch {
+          // Fallback to deterministic explanation if raw output cannot be parsed as JSON
+          return buildDeterministicExplanation(params);
+        }
+
         return {
           plainLanguageVerdict: parsed.plainLanguageVerdict || 'Analysis completed.',
           fishinessScore: typeof parsed.fishinessScore === 'number' ? parsed.fishinessScore : params.deterministicScore,

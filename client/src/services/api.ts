@@ -23,6 +23,16 @@ function getAuthHeader(): Record<string, string> {
   return {};
 }
 
+function getApiBase(): string {
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname;
+    if (host !== 'localhost' && host !== '127.0.0.1') {
+      return 'https://scamshield.subhamchanda702.workers.dev';
+    }
+  }
+  return '';
+}
+
 async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const headers = new Headers(options.headers || {});
   const authHeaders = getAuthHeader();
@@ -38,8 +48,22 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
     headers,
   };
 
-  const res = await fetch(endpoint, config);
-  const data = await res.json().catch(() => ({}));
+  const baseUrl = endpoint.startsWith('http') ? '' : getApiBase();
+  const url = `${baseUrl}${endpoint}`;
+  const res = await fetch(url, config);
+
+  const contentType = res.headers.get('content-type') || '';
+  let data: any = {};
+  if (contentType.includes('application/json')) {
+    data = await res.json().catch(() => ({}));
+  } else {
+    const text = await res.text().catch(() => '');
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = { success: false, error: `Invalid response format from server (expected JSON, received ${contentType || 'text'})` };
+    }
+  }
 
   if (!res.ok || (data && data.success === false)) {
     const errorMsg = data?.error || `Request to ${endpoint} failed with status ${res.status}`;
