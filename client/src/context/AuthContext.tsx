@@ -1,44 +1,27 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import type { UserProfile } from '../types';
-
-interface AuthContextType {
-  user: UserProfile | null;
-  token: string | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  signup: (email: string, password: string, displayName?: string) => Promise<void>;
-  quickDemoLogin: (role: 'citizen' | 'analyst' | 'admin') => Promise<void>;
-  logout: () => void;
-  openAuthModal: () => void;
-  closeAuthModal: () => void;
-  isAuthModalOpen: boolean;
-}
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+import { api } from '../services/api';
+import { AuthContext } from './useAuth';
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<UserProfile | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [token, setToken] = useState<string | null>(() => {
+    return localStorage.getItem('scamshield_token') || null;
+  });
 
-  useEffect(() => {
-    // Check saved session in localStorage
-    const savedToken = localStorage.getItem('scamshield_token');
+  const [user, setUser] = useState<UserProfile | null>(() => {
     const savedUser = localStorage.getItem('scamshield_user');
-
-    if (savedToken && savedUser) {
+    if (savedUser) {
       try {
-        setToken(savedToken);
-        setUser(JSON.parse(savedUser));
+        return JSON.parse(savedUser) as UserProfile;
       } catch {
-        localStorage.removeItem('scamshield_token');
         localStorage.removeItem('scamshield_user');
       }
     }
-    setIsLoading(false);
-  }, []);
+    return null;
+  });
+
+  const [isLoading] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   const saveSession = (newToken: string, newUser: UserProfile) => {
     setToken(newToken);
@@ -48,43 +31,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const login = async (email: string, password: string) => {
-    const res = await fetch('/api/v1/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
-    const data = await res.json();
-    if (!res.ok || !data.success) {
-      throw new Error(data.error || 'Login failed. Please check your credentials.');
-    }
+    const data = await api.auth.login(email, password);
     saveSession(data.token, data.user);
     setIsAuthModalOpen(false);
   };
 
   const signup = async (email: string, password: string, displayName?: string) => {
-    const res = await fetch('/api/v1/auth/signup', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, displayName }),
-    });
-    const data = await res.json();
-    if (!res.ok || !data.success) {
-      throw new Error(data.error || 'Signup failed. Please try again.');
-    }
+    const data = await api.auth.signup(email, password, displayName);
     saveSession(data.token, data.user);
     setIsAuthModalOpen(false);
   };
 
   const quickDemoLogin = async (role: 'citizen' | 'analyst' | 'admin') => {
-    const res = await fetch('/api/v1/auth/demo', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ role }),
-    });
-    const data = await res.json();
-    if (!res.ok || !data.success) {
-      throw new Error(data.error || 'Demo login failed');
-    }
+    const data = await api.auth.demo(role);
     saveSession(data.token, data.user);
     setIsAuthModalOpen(false);
   };
@@ -101,7 +60,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       value={{
         user,
         token,
-        isAuthenticated: !!user,
+        isAuthenticated: !!token && !!user,
         isLoading,
         login,
         signup,
@@ -116,11 +75,3 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     </AuthContext.Provider>
   );
 };
-
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-}

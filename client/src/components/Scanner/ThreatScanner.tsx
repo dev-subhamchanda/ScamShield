@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import type { AnalysisResult } from '../../types';
+import { api } from '../../services/api';
 import { ThreatResultCard } from './ThreatResultCard';
 import { Button } from '../UI/Button';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/useAuth';
 import {
   MessageSquare,
   Link as LinkIcon,
@@ -79,24 +80,25 @@ export const ThreatScanner: React.FC<ThreatScannerProps> = ({
   onOpenEncyclopedia,
   externalPrompt,
 }) => {
-  const { token, user } = useAuth();
-  const [activeTab, setActiveTab] = useState<ScanTab>('text');
-  const [textInput, setTextInput] = useState('');
-  const [urlInput, setUrlInput] = useState('');
+  const { user } = useAuth();
+  const [activeTab, setActiveTab] = useState<ScanTab>(() => externalPrompt?.type || 'text');
+  const [textInput, setTextInput] = useState(() => (externalPrompt?.type === 'text' ? externalPrompt.prompt : ''));
+  const [urlInput, setUrlInput] = useState(() => (externalPrompt?.type === 'url' ? externalPrompt.prompt : ''));
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [scanResult, setScanResult] = useState<AnalysisResult | null>(null);
 
-  useEffect(() => {
-    if (externalPrompt) {
-      setActiveTab(externalPrompt.type);
-      if (externalPrompt.type === 'text') setTextInput(externalPrompt.prompt);
-      if (externalPrompt.type === 'url') setUrlInput(externalPrompt.prompt);
-      setScanResult(null);
-      setErrorMsg(null);
-    }
-  }, [externalPrompt]);
+  // Sync external prompt safely during user navigation without cascading effects
+  const [syncedPrompt, setSyncedPrompt] = useState(externalPrompt);
+  if (externalPrompt && externalPrompt !== syncedPrompt) {
+    setSyncedPrompt(externalPrompt);
+    setActiveTab(externalPrompt.type);
+    if (externalPrompt.type === 'text') setTextInput(externalPrompt.prompt);
+    if (externalPrompt.type === 'url') setUrlInput(externalPrompt.prompt);
+    setScanResult(null);
+    setErrorMsg(null);
+  }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -160,22 +162,7 @@ export const ThreatScanner: React.FC<ThreatScannerProps> = ({
         formData.append('text', textInput.trim());
       }
 
-      const headers: Record<string, string> = {};
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-
-      const res = await fetch('/api/v1/scan/universal', {
-        method: 'POST',
-        headers,
-        body: formData,
-      });
-
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Failed to complete threat analysis');
-      }
-
+      const data = await api.scan.universal(formData);
       setScanResult(data.result);
     } catch (err: any) {
       setErrorMsg(err.message || 'Error communicating with ScamShield Security Engine.');

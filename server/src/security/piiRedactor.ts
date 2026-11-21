@@ -11,7 +11,7 @@ const PHONE_REGEX = /(?:\+?91[-.\s]?)?[6-9]\d{4}[-.\s]?\d{5}|(?:\+?\d{1,3}[-.\s]
 const CARD_REGEX = /\b(?:\d{4}[-\s]?){3}\d{4}\b/g;
 const AADHAAR_REGEX = /\b\d{4}\s\d{4}\s\d{4}\b/g;
 const UPI_REGEX = /\b[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}\b/g;
-const URL_REGEX = /https?:\/\/[^\s<>"{}|\\^`\[\]]+/gi;
+const URL_REGEX = /https?:\/\/[^\s<>"{}|\\^`[\]]+/gi;
 const EMAIL_REGEX = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g;
 
 export function redactSensitivePii(rawText: string): RedactionResult {

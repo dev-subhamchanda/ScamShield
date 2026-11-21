@@ -166,19 +166,41 @@ async function runE2ETests() {
   console.log('   ✓ Golden Hour Steps:', incData.incident.checklist.length, 'checklist items.');
   passedCount++;
 
-  // 11. Admin Moderation & Audit Logs
-  console.log('\n11. Testing Admin Moderation & Audit Log Query...');
-  const reviewRes = await fetch(`${BASE_URL}/api/v1/admin/moderation/review`, {
+  // 11. Admin Moderation & Audit Logs (RBAC Enforced)
+  console.log('\n11. Testing Admin Moderation & Audit Log Query (RBAC Protection)...');
+
+  // Verify unauthorized request is properly blocked
+  const unauthRes = await fetch(`${BASE_URL}/api/v1/admin/audit-logs`);
+  if (unauthRes.status !== 401 && unauthRes.status !== 403) {
+    throw new Error(`Admin endpoint should block unauthenticated requests! Received status: ${unauthRes.status}`);
+  }
+  console.log('   ✓ Unauthenticated probe properly rejected with HTTP', unauthRes.status);
+
+  // Authenticate as Admin
+  const adminAuthRes = await fetch(`${BASE_URL}/api/v1/auth/demo`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ role: 'admin' }),
+  });
+  const adminAuth = await adminAuthRes.json();
+  const adminToken = adminAuth.token;
+
+  const reviewRes = await fetch(`${BASE_URL}/api/v1/admin/moderation/review`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${adminToken}`,
+    },
     body: JSON.stringify({ reportId: createdRepId, action: 'approve' }),
   });
   const reviewData = await reviewRes.json();
   console.log('   ✓ Admin approved report! Verified:', reviewData.report.verifiedByAdmin);
 
-  const auditRes = await fetch(`${BASE_URL}/api/v1/admin/audit-logs`);
+  const auditRes = await fetch(`${BASE_URL}/api/v1/admin/audit-logs`, {
+    headers: { 'Authorization': `Bearer ${adminToken}` },
+  });
   const auditData = await auditRes.json();
-  console.log(`   ✓ Audit logs contain ${auditData.auditLogs.length} immutable security entries.`);
+  console.log(`   ✓ Admin Audit logs contain ${auditData.auditLogs.length} immutable security entries.`);
   passedCount++;
 
   console.log(`\n🎉 ALL ${passedCount} END-TO-END SYSTEM INTEGRATION TESTS PASSED WITH 100% SUCCESS!\n`);

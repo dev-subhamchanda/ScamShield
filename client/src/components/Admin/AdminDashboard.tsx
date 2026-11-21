@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import type { AuditLogEntry, CommunityThreatReport } from '../../types';
+import { api } from '../../services/api';
 import { Badge } from '../UI/Badge';
 import { Button } from '../UI/Button';
 import {
@@ -15,38 +16,31 @@ export const AdminDashboard: React.FC = () => {
   const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchAdminData();
-  }, []);
-
-  const fetchAdminData = async () => {
+  const fetchAdminData = useCallback(async () => {
     setLoading(true);
     try {
-      const [repRes, logRes] = await Promise.all([
-        fetch('/api/v1/admin/moderation'),
-        fetch('/api/v1/admin/audit-logs'),
+      const [repData, logData] = await Promise.all([
+        api.admin.getModerationQueue(),
+        api.admin.getAuditLogs(),
       ]);
-      const repData = await repRes.json();
-      const logData = await logRes.json();
 
-      if (repData.success) setReports(repData.reports);
-      if (logData.success) setAuditLogs(logData.auditLogs);
+      if (repData.reports) setReports(repData.reports);
+      if (logData.auditLogs) setAuditLogs(logData.auditLogs);
     } catch {
       // Ignore
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchAdminData();
+  }, [fetchAdminData]);
 
   const handleReview = async (reportId: string, action: 'approve' | 'reject') => {
     try {
-      const res = await fetch('/api/v1/admin/moderation/review', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reportId, action }),
-      });
-      const data = await res.json();
-      if (data.success) {
+      const data = await api.admin.reviewReport(reportId, action);
+      if (data.report) {
         if (action === 'reject') {
           setReports((prev) => prev.filter((r) => r.id !== reportId));
         } else {

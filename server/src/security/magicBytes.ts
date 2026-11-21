@@ -16,10 +16,7 @@ export interface MagicValidationResult {
 const SIG_MZ = Buffer.from([0x4D, 0x5A]); // 'MZ' Windows PE
 const SIG_ELF = Buffer.from([0x7F, 0x45, 0x4C, 0x46]); // ELF
 const SIG_PDF = Buffer.from([0x25, 0x50, 0x44, 0x46]); // '%PDF'
-const SIG_ZIP = Buffer.from([0x50, 0x4B, 0x03, 0x04]); // 'PK..' (ZIP/DOCX/XLSX/APK)
 const SIG_OLE = Buffer.from([0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1]); // OLE2 (doc/xls)
-const SIG_PNG = Buffer.from([0x89, 0x50, 0x4E, 0x47]);
-const SIG_JPEG = Buffer.from([0xFF, 0xD8, 0xFF]);
 
 export async function inspectFileMagicAndSignature(
   filename: string,
@@ -47,7 +44,6 @@ export async function inspectFileMagicAndSignature(
   const isMZ = buffer.length >= 2 && buffer[0] === SIG_MZ[0] && buffer[1] === SIG_MZ[1];
   const isELF = buffer.length >= 4 && buffer.subarray(0, 4).equals(SIG_ELF);
   const isPDF = buffer.length >= 4 && buffer.subarray(0, 4).equals(SIG_PDF);
-  const isZIP = buffer.length >= 4 && buffer.subarray(0, 4).equals(SIG_ZIP);
   const isOLE = buffer.length >= 8 && buffer.subarray(0, 8).equals(SIG_OLE);
 
   if (isMZ) {

@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import type { AnalysisResult, ThreatCategory } from '../../types';
+import { api } from '../../services/api';
 import { Button } from '../UI/Button';
 import {
   CheckCircle2,
@@ -84,18 +85,13 @@ export const IncidentResponse: React.FC<IncidentResponseProps> = ({ initialThrea
 
   const onSubmit = async (data: IncidentFormData) => {
     try {
-      const res = await fetch('/api/v1/incident/report', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          threatCategory: data.threatCategory as ThreatCategory,
-          financialLossAmount: data.financialLossAmount,
-          transactionReference: data.transactionReference?.trim(),
-          suspectContactOrHandle: data.suspectContactOrHandle?.trim(),
-        }),
+      const resData = await api.incident.submitReport({
+        threatCategory: data.threatCategory as ThreatCategory,
+        financialLossAmount: data.financialLossAmount,
+        transactionReference: data.transactionReference?.trim(),
+        suspectContactOrHandle: data.suspectContactOrHandle?.trim(),
       });
-      const resData = await res.json();
-      if (resData.success && resData.incident) {
+      if (resData.incident) {
         setCreatedCaseId(resData.incident.id);
       }
     } catch {

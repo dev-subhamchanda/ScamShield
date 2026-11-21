@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import type { ScamCampaign } from '../../types';
+import { api } from '../../services/api';
 import { Network } from 'lucide-react';
 
 export const CampaignClusters: React.FC = () => {
@@ -10,34 +11,32 @@ export const CampaignClusters: React.FC = () => {
     activeCampaignsTracked: number;
   }>({ totalThreatsScanned: 15420, activeThreatsBlocked: 8930, activeCampaignsTracked: 5 });
 
-  useEffect(() => {
-    fetchCampaigns();
-    fetchStats();
-  }, []);
-
-  const fetchCampaigns = async () => {
+  const fetchCampaigns = useCallback(async () => {
     try {
-      const res = await fetch('/api/v1/intelligence/campaigns');
-      const data = await res.json();
-      if (data.success && data.campaigns) {
+      const data = await api.campaigns.getAll();
+      if (data.campaigns) {
         setCampaigns(data.campaigns);
       }
     } catch {
       // Keep empty if fetch fails
     }
-  };
+  }, []);
 
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     try {
-      const res = await fetch('/api/v1/intelligence/stats');
-      const data = await res.json();
-      if (data.success && data.stats) {
+      const data = await api.campaigns.getStats();
+      if (data.stats) {
         setStats(data.stats);
       }
     } catch {
       // Keep fallback
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchCampaigns();
+    fetchStats();
+  }, [fetchCampaigns, fetchStats]);
 
   return (
     <div className="space-y-6">

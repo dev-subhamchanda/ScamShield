@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import type { AnalysisResult } from '../../types';
+import { api } from '../../services/api';
 import { Badge } from '../UI/Badge';
 import { Button } from '../UI/Button';
 import { Modal } from '../UI/Modal';
@@ -21,15 +22,10 @@ export const SecurityDashboard: React.FC<SecurityDashboardProps> = ({ onStartInc
   const [selectedScan, setSelectedScan] = useState<AnalysisResult | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchHistory();
-  }, []);
-
-  const fetchHistory = async () => {
+  const fetchHistory = useCallback(async () => {
     try {
-      const res = await fetch('/api/v1/scan/history');
-      const data = await res.json();
-      if (data.success && data.history) {
+      const data = await api.scan.getHistory();
+      if (data.history) {
         setHistory(data.history);
       }
     } catch {
@@ -37,7 +33,11 @@ export const SecurityDashboard: React.FC<SecurityDashboardProps> = ({ onStartInc
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchHistory();
+  }, [fetchHistory]);
 
   const totalScans = history.length;
   const criticalThreats = history.filter(

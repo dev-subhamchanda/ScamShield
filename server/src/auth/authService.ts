@@ -110,7 +110,7 @@ export function registerUser(params: {
   email: string;
   password: string;
   displayName?: string;
-  role?: 'citizen' | 'security_analyst';
+  role?: 'citizen' | 'security_analyst' | 'admin';
 }): { user: UserProfile; token: string } {
   const cleanEmail = params.email.trim().toLowerCase();
   if (usersDb.has(cleanEmail)) {

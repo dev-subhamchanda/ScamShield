@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { AuthProvider, useAuth } from './context/AuthContext';
+import React, { useState } from 'react';
+import { AuthProvider } from './context/AuthContext';
+import { useAuth } from './context/useAuth';
 import { ThemeProvider } from './context/ThemeContext';
+import { ErrorBoundary } from './components/UI/ErrorBoundary';
 import { Navbar } from './components/Navbar';
 import type { ActiveTab } from './components/Navbar';
 import { ThreatScanner } from './components/Scanner/ThreatScanner';
@@ -23,12 +25,9 @@ const AppContent: React.FC = () => {
     type: 'text' | 'url';
   } | null>(null);
 
-  // Enforce admin isolation: If user is not admin, they cannot view 'admin' tab
-  useEffect(() => {
-    if (activeTab === 'admin' && user?.role !== 'admin') {
-      setActiveTab('scanner');
-    }
-  }, [activeTab, user]);
+  // Enforce admin isolation derived without cascading set-state effects
+  const effectiveTab: ActiveTab =
+    activeTab === 'admin' && user?.role !== 'admin' ? 'scanner' : activeTab;
 
   const handleStartIncidentFromScan = (result: AnalysisResult) => {
     setIncidentContextThreat(result);
@@ -61,11 +60,11 @@ const AppContent: React.FC = () => {
   return (
     <div className="min-h-screen bg-[var(--bg-canvas)] text-[var(--text-primary)] flex flex-col font-sans selection:bg-[var(--accent-subtle)] selection:text-[var(--accent-primary)] transition-colors">
       {/* Top Precision Navbar */}
-      <Navbar activeTab={activeTab} onTabChange={setActiveTab} />
+      <Navbar activeTab={effectiveTab} onTabChange={setActiveTab} />
 
       {/* Main Content Workspace */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {activeTab === 'scanner' && (
+        {effectiveTab === 'scanner' && (
           <ThreatScanner
             onStartIncident={handleStartIncidentFromScan}
             onOpenEncyclopedia={() => setActiveTab('encyclopedia')}
@@ -73,24 +72,24 @@ const AppContent: React.FC = () => {
           />
         )}
 
-        {activeTab === 'encyclopedia' && (
+        {effectiveTab === 'encyclopedia' && (
           <ScamEncyclopedia onTestPrompt={handleLoadSampleFromEncyclopedia} />
         )}
 
-        {activeTab === 'dashboard' && (
+        {effectiveTab === 'dashboard' && (
           <SecurityDashboard onStartIncident={handleStartIncidentFromScan} />
         )}
 
-        {activeTab === 'community' && <CommunityIntel />}
+        {effectiveTab === 'community' && <CommunityIntel />}
 
-        {activeTab === 'campaigns' && <CampaignClusters />}
+        {effectiveTab === 'campaigns' && <CampaignClusters />}
 
-        {activeTab === 'incident' && (
+        {effectiveTab === 'incident' && (
           <IncidentResponse initialThreat={incidentContextThreat} />
         )}
 
         {/* Admin Dashboard: Strictly guarded for Admin users */}
-        {activeTab === 'admin' && user.role === 'admin' && <AdminDashboard />}
+        {effectiveTab === 'admin' && user.role === 'admin' && <AdminDashboard />}
       </main>
 
       {/* Cyber Security Precision Footer */}
@@ -128,11 +127,13 @@ const AppContent: React.FC = () => {
 
 export const App: React.FC = () => {
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <AppContent />
-      </AuthProvider>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <AuthProvider>
+          <AppContent />
+        </AuthProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 };
 

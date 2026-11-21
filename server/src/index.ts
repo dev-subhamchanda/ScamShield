@@ -11,6 +11,15 @@ import { generateScamExplanation } from './security/geminiExplainer.js';
 import { extractQrFromImageBuffer } from './security/qrScanner.js';
 import { createRateLimiter } from './middleware/rateLimiter.js';
 import { securityHeadersMiddleware } from './middleware/securityHeaders.js';
+import { authenticateJwt, requireAdmin, requireAuth } from './middleware/authMiddleware.js';
+import {
+  signupSchema,
+  loginSchema,
+  demoAuthSchema,
+  communityReportSchema,
+  incidentReportSchema,
+  moderationReviewSchema,
+} from './schemas/validationSchemas.js';
 import {
   registerUser,
   authenticateUser,
@@ -57,6 +66,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 const scanLimiter = createRateLimiter({ maxRequests: 40, windowMs: 60 * 1000 });
 const apiLimiter = createRateLimiter({ maxRequests: 120, windowMs: 60 * 1000 });
 app.use('/api/', apiLimiter);
+app.use(authenticateJwt);
 
 // File Upload Security Constraints: Memory buffer, strictly 25MB ceiling
 const upload = multer({
@@ -90,10 +100,11 @@ function extractUserIdFromReq(req: express.Request): string | undefined {
 // ----------------------------------------------------
 app.post('/api/v1/auth/signup', (req: express.Request, res: express.Response) => {
   try {
-    const { email, password, displayName, role } = req.body;
-    if (!email || !password) {
-      return res.status(400).json({ success: false, error: 'Email and password are required' });
+    const parseResult = signupSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      return res.status(400).json({ success: false, error: parseResult.error.errors[0].message });
     }
+    const { email, password, displayName, role } = parseResult.data;
     const { user, token } = registerUser({ email, password, displayName, role });
     logAuditEvent(user.id, 'USER_SIGNUP', req.ip || '', { email: user.email });
     res.json({ success: true, user, token });
@@ -104,10 +115,11 @@ app.post('/api/v1/auth/signup', (req: express.Request, res: express.Response) =>
 
 app.post('/api/v1/auth/login', (req: express.Request, res: express.Response) => {
   try {
-    const { email, password } = req.body;
-    if (!email || !password) {
-      return res.status(400).json({ success: false, error: 'Email and password are required' });
+    const parseResult = loginSchema.safeParse(req.body);
+    if (!parseResult.success) {
+      return res.status(400).json({ success: false, error: parseResult.error.errors[0].message });
     }
+    const { email, password } = parseResult.data;
     const { user, token } = authenticateUser(email, password);
     logAuditEvent(user.id, 'USER_LOGIN', req.ip || '', { email: user.email });
     res.json({ success: true, user, token });
@@ -116,8 +128,8 @@ app.post('/api/v1/auth/login', (req: express.Request, res: express.Response) => 
   }
 });
 
-app.get('/api/v1/auth/me', (req: express.Request, res: express.Response) => {
-  const userId = extractUserIdFromReq(req);
+app.get('/api/v1/auth/me', requireAuth, (req: express.Request, res: express.Response) => {
+  const userId = req.user?.id;
   if (!userId) {
     return res.status(401).json({ success: false, error: 'Unauthorized: Invalid or missing token' });
   }
@@ -130,7 +142,8 @@ app.get('/api/v1/auth/me', (req: express.Request, res: express.Response) => {
 
 app.post('/api/v1/auth/demo', (req: express.Request, res: express.Response) => {
   try {
-    const role = (req.body.role || 'citizen') as 'citizen' | 'analyst' | 'admin';
+    const parseResult = demoAuthSchema.safeParse(req.body);
+    const role = (parseResult.success ? parseResult.data.role : 'citizen') as 'citizen' | 'analyst' | 'admin';
     const { user, token } = getDemoUser(role);
     logAuditEvent(user.id, 'DEMO_LOGIN', req.ip || '', { role: user.role });
     res.json({ success: true, user, token });
@@ -443,18 +456,19 @@ app.get('/api/v1/community/threats', (_req, res) => {
 });
 
 app.post('/api/v1/community/threats', (req, res) => {
-  const { title, threatType, content, reportingReason } = req.body;
-  if (!title || !content) {
-    return res.status(400).json({ success: false, error: 'Title and content are required' });
+  const parseResult = communityReportSchema.safeParse(req.body);
+  if (!parseResult.success) {
+    return res.status(400).json({ success: false, error: parseResult.error.errors[0].message });
   }
 
+  const { title, threatType, content, reportingReason } = parseResult.data;
   const redacted = redactSensitivePii(content);
   const heuristics = analyzeMessageHeuristics(redacted.sanitizedText);
 
   const newReport: any = {
     id: `REP-${Date.now()}`,
     title: title.trim(),
-    threatType: threatType || heuristics.threatCategory || 'IMPERSONATION_SOCIAL_ENGINEERING',
+    threatType: (threatType || heuristics.threatCategory || 'IMPERSONATION_SOCIAL_ENGINEERING') as ThreatCategory,
     sanitizedSnippet: redacted.sanitizedText,
     riskSeverity: heuristics.severity,
     verifiedByAdmin: false, // Pending moderation
@@ -466,7 +480,7 @@ app.post('/api/v1/community/threats', (req, res) => {
 
   communityReports.unshift(newReport);
   persistCommunityReportToSupabase(newReport).catch(() => {});
-  logAuditEvent('CITIZEN', 'COMMUNITY_REPORT_SUBMITTED', req.ip || '', { title });
+  logAuditEvent(req.user?.id || 'CITIZEN', 'COMMUNITY_REPORT_SUBMITTED', req.ip || '', { title });
   res.json({ success: true, report: newReport });
 });
 
@@ -526,11 +540,16 @@ app.get('/api/v1/incident/guide/:threatType', (req, res) => {
 });
 
 app.post('/api/v1/incident/report', (req, res) => {
-  const { threatCategory, financialLossAmount, transactionReference, suspectContactOrHandle } = req.body;
+  const parseResult = incidentReportSchema.safeParse(req.body);
+  if (!parseResult.success) {
+    return res.status(400).json({ success: false, error: parseResult.error.errors[0].message });
+  }
+
+  const { threatCategory, financialLossAmount, transactionReference, suspectContactOrHandle } = parseResult.data;
 
   const newIncident: any = {
     id: `INC-${Date.now()}`,
-    threatCategory: threatCategory || 'IMPERSONATION_SOCIAL_ENGINEERING',
+    threatCategory: (threatCategory || 'IMPERSONATION_SOCIAL_ENGINEERING') as ThreatCategory,
     financialLossAmount: Number(financialLossAmount) || 0,
     transactionReference: transactionReference ? transactionReference.slice(0, 40) : undefined,
     suspectContactOrHandle: suspectContactOrHandle ? suspectContactOrHandle.slice(0, 40) : undefined,
@@ -548,7 +567,7 @@ app.post('/api/v1/incident/report', (req, res) => {
 
   incidentReports.unshift(newIncident);
   persistIncidentToSupabase(newIncident).catch(() => {});
-  logAuditEvent('CITIZEN', 'INCIDENT_CASE_CREATED', req.ip || '', {
+  logAuditEvent(req.user?.id || 'CITIZEN', 'INCIDENT_CASE_CREATED', req.ip || '', {
     id: newIncident.id,
     loss: financialLossAmount,
   });
@@ -557,14 +576,19 @@ app.post('/api/v1/incident/report', (req, res) => {
 });
 
 // ----------------------------------------------------
-// MODULE 9: ADMINISTRATIVE MODERATION & AUDIT
+// MODULE 9: ADMINISTRATIVE MODERATION & AUDIT (RBAC Enforced)
 // ----------------------------------------------------
-app.get('/api/v1/admin/moderation', (_req, res) => {
+app.get('/api/v1/admin/moderation', requireAdmin, (_req, res) => {
   res.json({ success: true, reports: communityReports });
 });
 
-app.post('/api/v1/admin/moderation/review', (req, res) => {
-  const { reportId, action } = req.body;
+app.post('/api/v1/admin/moderation/review', requireAdmin, (req, res) => {
+  const parseResult = moderationReviewSchema.safeParse(req.body);
+  if (!parseResult.success) {
+    return res.status(400).json({ success: false, error: parseResult.error.errors[0].message });
+  }
+
+  const { reportId, action } = parseResult.data;
   const report = communityReports.find((r) => r.id === reportId);
   if (!report) {
     return res.status(404).json({ success: false, error: 'Report not found' });
@@ -577,11 +601,11 @@ app.post('/api/v1/admin/moderation/review', (req, res) => {
     if (idx !== -1) communityReports.splice(idx, 1);
   }
 
-  logAuditEvent('ADMIN_USER', 'MODERATION_ACTION', req.ip || '', { reportId, action });
+  logAuditEvent(req.user?.id || 'ADMIN_USER', 'MODERATION_ACTION', req.ip || '', { reportId, action });
   res.json({ success: true, report });
 });
 
-app.get('/api/v1/admin/audit-logs', (_req, res) => {
+app.get('/api/v1/admin/audit-logs', requireAdmin, (_req, res) => {
   res.json({ success: true, auditLogs: auditLogs.slice(0, 100) });
 });
 
@@ -593,6 +617,15 @@ app.get('/api/health', (_req, res) => {
     version: '1.0.0-prototype',
     deterministicStatus: 'active',
     llmExplainerStatus: process.env.GEMINI_API_KEY ? 'gemini-live' : 'deterministic-fallback',
+  });
+});
+
+// Global centralized error handler
+app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  console.error('[Security Engine Error]', err);
+  res.status(500).json({
+    success: false,
+    error: 'An internal error occurred in the security processing pipeline.',
   });
 });
 

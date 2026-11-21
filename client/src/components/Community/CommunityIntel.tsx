@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import type { CommunityThreatReport, ThreatCategory } from '../../types';
+import { api } from '../../services/api';
 import { Badge } from '../UI/Badge';
 import { Button } from '../UI/Button';
 import { Modal } from '../UI/Modal';
@@ -43,29 +44,25 @@ export const CommunityIntel: React.FC = () => {
     },
   });
 
-  useEffect(() => {
-    fetchReports();
-  }, []);
-
-  const fetchReports = async () => {
+  const fetchReports = useCallback(async () => {
     try {
-      const res = await fetch('/api/v1/community/threats');
-      const data = await res.json();
-      if (data.success && data.reports) {
+      const data = await api.community.getThreats();
+      if (data.reports) {
         setReports(data.reports);
       }
     } catch {
       // Keep empty if fetch fails
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchReports();
+  }, [fetchReports]);
 
   const handleVote = async (id: string) => {
     try {
-      const res = await fetch(`/api/v1/community/threats/${id}/vote`, {
-        method: 'POST',
-      });
-      const data = await res.json();
-      if (data.success) {
+      const data = await api.community.vote(id);
+      if (data.upvotes !== undefined) {
         setReports((prev) =>
           prev.map((r) => (r.id === id ? { ...r, upvotes: data.upvotes } : r))
         );
@@ -78,26 +75,21 @@ export const CommunityIntel: React.FC = () => {
   const onSubmit = async (data: CommunityReportFormData) => {
     setFeedbackMsg(null);
     try {
-      const res = await fetch('/api/v1/community/threats', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: data.title.trim(),
-          threatType: data.threatType as ThreatCategory,
-          content: data.content.trim(),
-          reportingReason: data.reportingReason?.trim() || 'Reported by community user',
-        }),
+      const resData = await api.community.submitReport({
+        title: data.title.trim(),
+        threatType: data.threatType as ThreatCategory,
+        content: data.content.trim(),
+        reportingReason: data.reportingReason?.trim() || 'Reported by community user',
       });
 
-      const resData = await res.json();
-      if (resData.success && resData.report) {
+      if (resData.report) {
         setReports((prev) => [resData.report, ...prev]);
         setIsReportModalOpen(false);
         reset();
         setFeedbackMsg('Thank you! Your threat report has been recorded and submitted for moderation.');
       }
-    } catch {
-      setFeedbackMsg('Failed to submit report. Please try again.');
+    } catch (err: any) {
+      setFeedbackMsg(err.message || 'Failed to submit report. Please try again.');
     }
   };
 

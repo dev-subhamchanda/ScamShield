@@ -1,15 +1,9 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-
-export type ThemePreference = 'dark' | 'light' | 'system';
-export type ResolvedTheme = 'dark' | 'light';
-
-interface ThemeContextType {
-  theme: ThemePreference;
-  resolvedTheme: ResolvedTheme;
-  setTheme: (theme: ThemePreference) => void;
-}
-
-const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+import React, { useEffect, useState } from 'react';
+import {
+  ThemeContext,
+  type ThemePreference,
+  type ResolvedTheme,
+} from './useTheme';
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setThemeState] = useState<ThemePreference>(() => {
@@ -17,10 +11,19 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (saved === 'dark' || saved === 'light' || saved === 'system') {
       return saved;
     }
-    return 'dark'; // Default to deep Cyber Graphite dark mode
+    return 'dark'; // Default to Cyber Graphite dark mode
   });
 
-  const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>('dark');
+  const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>(() => {
+    const saved = localStorage.getItem('scamshield_theme');
+    if (saved === 'light') return 'light';
+    if (saved === 'system') {
+      return typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches
+        ? 'dark'
+        : 'light';
+    }
+    return 'dark';
+  });
 
   useEffect(() => {
     const root = document.documentElement;
@@ -69,12 +72,4 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       {children}
     </ThemeContext.Provider>
   );
-};
-
-export const useTheme = (): ThemeContextType => {
-  const context = useContext(ThemeContext);
-  if (!context) {
-    throw new Error('useTheme must be used within a ThemeProvider');
-  }
-  return context;
 };
